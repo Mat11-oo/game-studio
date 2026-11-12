@@ -10,15 +10,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Innate-Labs/Noobi.ai/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Innate-Labs/Noobi.ai/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://github.com/Innate-Labs/Noobi.ai/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Innate-Labs/Noobi.ai?style=flat"></a>
-  <a href="https://github.com/Innate-Labs/Noobi.ai/forks"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Innate-Labs/Noobi.ai?style=flat"></a>
+  <a href="https://github.com/Mat11-oo/game-studio/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Mat11-oo/game-studio/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/Mat11-oo/game-studio/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Mat11-oo/game-studio?style=flat"></a>
+  <a href="https://github.com/Mat11-oo/game-studio/forks"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Mat11-oo/game-studio?style=flat"></a>
   <img alt="平台：macOS" src="https://img.shields.io/badge/platform-macOS-11120f">
   <img alt="开发者预览版" src="https://img.shields.io/badge/status-developer%20preview-E9A93A">
 </p>
 
 <p align="center">
-  <a href="https://innate-labs.github.io/Noobi.ai/"><strong>在线演示</strong></a> ·
+  <a href="https://mat11-oo.github.io/game-studio/"><strong>在线演示</strong></a> ·
   <a href="#快速开始"><strong>从源码运行</strong></a> ·
   <a href="#fork-并定制"><strong>Fork 并定制</strong></a> ·
   <a href="docs/ARCHITECTURE.md"><strong>架构文档</strong></a> ·
@@ -29,7 +29,7 @@
 
 游戏工坊不让单个 Agent 在一次回合里即兴完成所有工作，而是把 Codex 放进一条有边界的游戏制作循环：只读 Planner 拆解任务，Implementer 在独立工程目录中实现，独立 Reviewer 检查真实结果，宿主再正式构建并自动试玩。审查、构建或体验评测未通过时，会交回同一个 Implementer，最多连续修复三轮。
 
-> **网页演示：** [innate-labs.github.io/Noobi.ai](https://innate-labs.github.io/Noobi.ai/) 用真实工作台界面搭配模拟的本地后端；真实的 Codex 制作请运行桌面版。
+> **网页演示：** [mat11-oo.github.io/game-studio](https://mat11-oo.github.io/game-studio/) 用真实工作台界面搭配模拟的本地后端；真实的 Codex 制作请运行桌面版。
 
 > **当前状态：** macOS 开发者预览版。项目暂未发布已签名、公证的安装包，请从源码运行。生成结果是你自己工作区里的独立 Web 或 Godot 4 游戏工程。
 
@@ -55,8 +55,8 @@
 - 只有 Agent 判断需要 Godot 时，才要求 Godot 4 与版本精确匹配的 Web Export Templates
 
 ```bash
-git clone https://github.com/Innate-Labs/Noobi.ai.git
-cd Noobi.ai
+git clone https://github.com/Mat11-oo/game-studio.git
+cd game-studio
 npm ci
 npm run dev
 ```
@@ -182,7 +182,7 @@ npm run package:mac
 
 ## 许可证
 
-项目所有者尚未发布许可证。在正式加入 `LICENSE` 前，仓库内容仍受默认版权规则约束。如果你准备分发衍生版本，请关注[仓库 Issues](https://github.com/Innate-Labs/Noobi.ai/issues)或先联系维护者。
+项目所有者尚未发布许可证。在正式加入 `LICENSE` 前，仓库内容仍受默认版权规则约束。如果你准备分发衍生版本，请关注[仓库 Issues](https://github.com/Mat11-oo/game-studio/issues)或先联系维护者。
 
 ## 文档
 

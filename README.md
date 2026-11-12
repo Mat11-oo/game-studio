@@ -10,15 +10,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Innate-Labs/Noobi.ai/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Innate-Labs/Noobi.ai/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://github.com/Innate-Labs/Noobi.ai/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Innate-Labs/Noobi.ai?style=flat"></a>
-  <a href="https://github.com/Innate-Labs/Noobi.ai/forks"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Innate-Labs/Noobi.ai?style=flat"></a>
+  <a href="https://github.com/Mat11-oo/game-studio/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Mat11-oo/game-studio/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/Mat11-oo/game-studio/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Mat11-oo/game-studio?style=flat"></a>
+  <a href="https://github.com/Mat11-oo/game-studio/forks"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Mat11-oo/game-studio?style=flat"></a>
   <img alt="Platform: macOS" src="https://img.shields.io/badge/platform-macOS-11120f">
   <img alt="Developer preview" src="https://img.shields.io/badge/status-developer%20preview-E9A93A">
 </p>
 
 <p align="center">
-  <a href="https://innate-labs.github.io/Noobi.ai/"><strong>Live demo</strong></a> ·
+  <a href="https://mat11-oo.github.io/game-studio/"><strong>Live demo</strong></a> ·
   <a href="#quick-start"><strong>Run from source</strong></a> ·
   <a href="#fork-and-customize"><strong>Fork &amp; customize</strong></a> ·
   <a href="docs/ARCHITECTURE.md"><strong>Architecture</strong></a> ·
@@ -29,7 +29,7 @@
 
 游戏工坊 gives Codex a bounded game-production loop instead of asking one agent to improvise everything in a single pass. A read-only Planner scopes the work, an Implementer builds inside an isolated project directory, an independent Reviewer checks the result, and the host builds and plays the production output before completion. Failed review, build or playtest checks return to the same Implementer for up to three repair rounds.
 
-> **Web demo:** [innate-labs.github.io/Noobi.ai](https://innate-labs.github.io/Noobi.ai/) runs the real workbench UI with a mocked local backend. Use the desktop app for real Codex runs.
+> **Web demo:** [mat11-oo.github.io/game-studio](https://mat11-oo.github.io/game-studio/) runs the real workbench UI with a mocked local backend. Use the desktop app for real Codex runs.
 
 > **Current status:** developer preview for macOS. No signed or notarized binary is published yet; run it from source. The output is a standalone Web or Godot 4 project in your own workspace.
 
@@ -55,8 +55,8 @@
 - Godot 4 with exactly matching Web export templates, only when the Agent selects Godot
 
 ```bash
-git clone https://github.com/Innate-Labs/Noobi.ai.git
-cd Noobi.ai
+git clone https://github.com/Mat11-oo/game-studio.git
+cd game-studio
 npm ci
 npm run dev
 ```
@@ -210,7 +210,7 @@ Contributions that make the pipeline safer, more portable or easier to extend ar
 
 ## License
 
-No project license has been published yet. Until the repository owners select and add one, the code remains under the default copyright rules. If you plan to distribute a derivative, watch [the repository issues](https://github.com/Innate-Labs/Noobi.ai/issues) or contact the maintainers first.
+No project license has been published yet. Until the repository owners select and add one, the code remains under the default copyright rules. If you plan to distribute a derivative, watch [the repository issues](https://github.com/Mat11-oo/game-studio/issues) or contact the maintainers first.
 
 ## Documentation
 

@@ -18,8 +18,8 @@ For larger features or behavior changes, open a proposal issue before investing 
 You need macOS, Node.js 22 LTS, npm, and a ChatGPT/Codex account for real Agent smoke tests.
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/Noobi.ai.git
-cd Noobi.ai
+git clone https://github.com/YOUR-USERNAME/game-studio.git
+cd game-studio
 npm ci
 npm run dev
 ```
@@ -27,7 +27,7 @@ npm run dev
 Keep your fork current without rewriting shared history:
 
 ```bash
-git remote add upstream https://github.com/Innate-Labs/Noobi.ai.git
+git remote add upstream https://github.com/Mat11-oo/game-studio.git
 git fetch upstream
 git rebase upstream/main
 ```
