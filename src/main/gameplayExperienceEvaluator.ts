@@ -47,7 +47,7 @@ export interface GameplaySurfaceSnapshot {
   visibleCandidateCount: number;
 }
 
-export type GameplayActionRole = 'start' | 'move' | 'primary' | 'pause' | 'restart' | 'other';
+export type GameplayActionRole = 'start' | 'move' | 'primary' | 'mistake' | 'pause' | 'restart' | 'other';
 
 export type GameplayPlaytestInput =
   | { type: 'key'; code: string; holdMs: number }
@@ -82,6 +82,7 @@ export type GameplayJourneyAction =
   | 'start'
   | 'move'
   | 'primary'
+  | 'mistake'
   | 'pause'
   | 'restart'
   | 'wait';
@@ -101,7 +102,11 @@ export interface GameplayPlaytestManifest {
   entrypoint: { path: string; readyTimeoutMs: number };
   actions: Record<'start' | 'move' | 'primary' | 'pause' | 'restart', {
     inputs: readonly GameplayPlaytestInput[];
-  }>;
+  }> & {
+    mistake?: { inputs: readonly GameplayPlaytestInput[] };
+  };
+  /** Present for 「智慧闯关」projects; the host verifies every declared level. */
+  levels?: { count: number };
   journey: readonly GameplayPlaytestJourneyStep[];
   success: readonly GameplayPlaytestObservation[];
   limits: { maxRunMs: number; stepTimeoutMs: number };
@@ -136,6 +141,8 @@ export interface GameplayObservationResult {
   description: string;
   status: 'pass' | 'repair';
   message: string;
+  /** Expected text/selector, retained so the host can audit level progression. */
+  value?: string;
 }
 
 export interface GameplayJourneyStepResult {
@@ -181,6 +188,8 @@ export interface GameplayExperienceEvaluationOptions {
   expectedEngine?: 'web' | 'godot';
   expectedEntrypoint?: string;
   signal?: AbortSignal;
+  /** 「智慧闯关」projects add mandatory mistake-path and level-progression gates. */
+  profile?: 'standard' | 'wisdom';
   timeoutMs?: number;
   initialDelayMs?: number;
   keyHoldMs?: number;
@@ -273,6 +282,9 @@ interface CapturedFrame {
 
 interface EvaluationState {
   startedAt: number;
+  profile: 'standard' | 'wisdom';
+  levelCount: number;
+  prematureSuccess: string[];
   projectRoot: string;
   screenshotDirectory: string;
   reportPath: string;
@@ -285,6 +297,7 @@ interface EvaluationState {
   observations: GameplayObservationResult[];
   temporalSamples: GameplayTemporalSample[];
   framesByStepId: Map<string, CapturedFrame>;
+  successPassed: Set<number>;
   surface: GameplaySurfaceSnapshot | null;
   baselineDifference: SampledBitmapDifference | null;
   loadCompleted: boolean;
@@ -388,10 +401,25 @@ export async function readGameplayPlaytestManifest(projectRoot: string): Promise
   return manifest;
 }
 
+export function assertWisdomPlaytestManifest(manifest: GameplayPlaytestManifest): void {
+  const findings: string[] = [];
+  if (!manifest.actions.mistake) findings.push('actions.mistake 缺失');
+  if (!manifest.levels || manifest.levels.count < 3) findings.push('levels.count 必须 ≥ 3');
+  if (!manifest.journey.some((step) => step.action === 'mistake')) {
+    findings.push('journey 缺少 action="mistake" 的步骤');
+  }
+  if (!manifest.success.some((observation) => observation.kind === 'text-visible')) {
+    findings.push('success 缺少 text-visible 结算断言');
+  }
+  if (findings.length > 0) {
+    throw new Error(`智慧闯关试玩契约不完整：${findings.join('；')}`);
+  }
+}
+
 export function parseGameplayPlaytestManifest(value: unknown): GameplayPlaytestManifest {
   const root = requireRecord(value, 'playtest');
   requireOnlyKeys(root, [
-    'schemaVersion', 'updatedAt', 'engine', 'entrypoint', 'actions', 'journey', 'success', 'limits',
+    'schemaVersion', 'updatedAt', 'engine', 'entrypoint', 'actions', 'journey', 'success', 'levels', 'limits',
   ], 'playtest');
   if (root.schemaVersion !== 1) throw new Error('playtest.schemaVersion 必须是 1');
   const updatedAt = requireBoundedString(root.updatedAt, 'playtest.updatedAt', 64);
@@ -426,15 +454,30 @@ export function parseGameplayPlaytestManifest(value: unknown): GameplayPlaytestM
   };
 
   const actionsRecord = requireRecord(root.actions, 'playtest.actions');
-  const actionNames = ['start', 'move', 'primary', 'pause', 'restart'] as const;
+  const actionNames = ['start', 'move', 'primary', 'pause', 'restart', 'mistake'] as const;
   requireOnlyKeys(actionsRecord, actionNames, 'playtest.actions');
-  const actions = Object.fromEntries(actionNames.map((name) => {
+  const parsedActions: Record<string, { inputs: readonly GameplayPlaytestInput[] }> = {};
+  for (const name of actionNames) {
+    if (actionsRecord[name] === undefined) {
+      if (name !== 'mistake') throw new Error(`playtest.actions.${name} 缺失`);
+      continue;
+    }
     const actionRecord = requireRecord(actionsRecord[name], `playtest.actions.${name}`);
     requireOnlyKeys(actionRecord, ['inputs'], `playtest.actions.${name}`);
     const inputs = parseInputs(actionRecord.inputs, `playtest.actions.${name}.inputs`, limits.stepTimeoutMs, false);
     if (inputs.length === 0) throw new Error(`playtest.actions.${name}.inputs 不能为空`);
-    return [name, { inputs }];
-  })) as unknown as GameplayPlaytestManifest['actions'];
+    parsedActions[name] = { inputs };
+  }
+  const actions = parsedActions as unknown as GameplayPlaytestManifest['actions'];
+
+  let levels: { count: number } | undefined;
+  if (root.levels !== undefined) {
+    const levelsRecord = requireRecord(root.levels, 'playtest.levels');
+    requireOnlyKeys(levelsRecord, ['count'], 'playtest.levels');
+    levels = {
+      count: requireIntegerInRange(levelsRecord.count, 'playtest.levels.count', 2, 12),
+    };
+  }
 
   if (!Array.isArray(root.journey) || root.journey.length === 0 || root.journey.length > 24) {
     throw new Error('playtest.journey 必须包含 1 到 24 个步骤');
@@ -494,7 +537,7 @@ export function parseGameplayPlaytestManifest(value: unknown): GameplayPlaytestM
       throw new Error(`screen-change baselineStepId 不存在：${observation.baselineStepId}`);
     }
   }
-  return { schemaVersion: 1, updatedAt, engine, entrypoint, actions, journey, success, limits };
+  return { schemaVersion: 1, updatedAt, engine, entrypoint, actions, ...(levels ? { levels } : {}), journey, success, limits };
 }
 
 export async function readLatestGameplayExperienceReport(
@@ -539,6 +582,9 @@ export async function writeGameplayExperienceFailureReport(
       { id: 'input-response', label: '操作反馈', status: 'skipped', message: '预览未启动。' },
       { id: 'continuous-render', label: '持续渲染与动画', status: 'skipped', message: '预览未启动。' },
       { id: 'restart', label: '重新开始', status: 'skipped', message: '预览未启动。' },
+      { id: 'success-gated', label: '通关条件延迟', status: 'skipped', message: '预览未启动。' },
+      { id: 'failure-path', label: '错误路径', status: 'skipped', message: '预览未启动。' },
+      { id: 'level-progression', label: '关卡递进', status: 'skipped', message: '预览未启动。' },
     ],
   };
   let published = false;
@@ -643,8 +689,12 @@ export class GameplayExperienceEvaluator {
     let published = false;
     try {
     const startedAt = Date.now();
+    const profile = options.profile ?? 'standard';
     const state: EvaluationState = {
       startedAt,
+      profile,
+      levelCount: 0,
+      prematureSuccess: [],
       projectRoot,
       screenshotDirectory: staging.screenshotDirectory,
       reportPath,
@@ -657,6 +707,7 @@ export class GameplayExperienceEvaluator {
       observations: [],
       temporalSamples: [],
       framesByStepId: new Map(),
+      successPassed: new Set(),
       surface: null,
       baselineDifference: null,
       loadCompleted: false,
@@ -666,6 +717,8 @@ export class GameplayExperienceEvaluator {
     let manifest: GameplayPlaytestManifest;
     try {
       manifest = await readGameplayPlaytestManifest(projectRoot);
+      if (profile === 'wisdom') assertWisdomPlaytestManifest(manifest);
+      state.levelCount = manifest.levels?.count ?? 0;
       if (options.expectedEngine !== undefined && manifest.engine !== options.expectedEngine) {
         throw new Error(
           `playtest.engine 为 ${manifest.engine}，与宿主项目引擎 ${options.expectedEngine} 不一致`,
@@ -832,6 +885,9 @@ export class GameplayExperienceEvaluator {
     state.screenshots.idle = idle.path;
     state.baselineDifference = compareFrames(before, idle);
     state.framesByStepId.set('launch', idle);
+    if (state.profile === 'wisdom') {
+      state.prematureSuccess = await probePrematureSuccess(window, manifest.success, signal);
+    }
     let previous = idle;
     let pauseActionCount = 0;
 
@@ -922,6 +978,25 @@ export class GameplayExperienceEvaluator {
         signal,
       );
       state.observations.push(...observationResults);
+      // `success` used to be evaluated only after the final restart step, so a
+      // terminal banner that appeared before restart was already gone. Record
+      // terminal text/element evidence at every step and honour it at the end.
+      const earlySuccess = await evaluateObservations(
+        window,
+        step.id,
+        manifest.success,
+        captured,
+        previous,
+        state.framesByStepId,
+        visualChangeThreshold(state, INPUT_CHANGE_RATIO),
+        signal,
+      );
+      earlySuccess.forEach((result, successIndex) => {
+        if (result.status === 'pass'
+          && (result.kind === 'text-visible' || result.kind === 'element-visible')) {
+          state.successPassed.add(successIndex);
+        }
+      });
       let nextPrevious = captured;
       if (sampledDuringHold && heldFrames.length >= 2 && (step.action === 'move' || step.action === 'primary')) {
         const temporalDifference = compareFrames(heldFrames[0], heldFrames[1]);
@@ -1048,7 +1123,13 @@ export class GameplayExperienceEvaluator {
       visualChangeThreshold(state, INPUT_CHANGE_RATIO),
       signal,
     );
-    state.observations.push(...successResults);
+    const finalSuccessResults = successResults.map((result, successIndex) => (
+      (result.kind === 'text-visible' || result.kind === 'element-visible')
+        && state.successPassed.has(successIndex)
+        ? { ...result, status: 'pass' as const, message: `旅程中已观察到：${result.description}` }
+        : result
+    ));
+    state.observations.push(...finalSuccessResults);
   }
 }
 
@@ -1590,6 +1671,7 @@ async function evaluateObservations(
         stepId,
         kind: observation.kind,
         description: observation.description,
+        value: observation.value,
         status: passed ? 'pass' : 'repair',
         message: passed
           ? `截图包含 ${stats.uniqueColors} 种采样颜色，亮度范围 ${(stats.luminanceRange * 100).toFixed(1)}%。`
@@ -1607,6 +1689,7 @@ async function evaluateObservations(
         stepId,
         kind: observation.kind,
         description: observation.description,
+        value: observation.value,
         status: passed ? 'pass' : 'repair',
         message: difference
           ? passed
@@ -1623,6 +1706,7 @@ async function evaluateObservations(
         stepId,
         kind: observation.kind,
         description: observation.description,
+        value: observation.value,
         status: visible ? 'pass' : 'repair',
         message: visible ? `检测到可见文字“${expected}”。` : `没有检测到可见文字“${expected}”。`,
       });
@@ -1634,6 +1718,7 @@ async function evaluateObservations(
       stepId,
       kind: observation.kind,
       description: observation.description,
+      value: observation.value,
       status: visible ? 'pass' : 'repair',
       message: visible ? `元素 ${selector} 可见。` : `元素 ${selector} 不存在或不可见。`,
     });
@@ -1702,6 +1787,19 @@ async function inspectTextVisibility(
     }
     return false;
   })()`, false), signal);
+}
+
+async function probePrematureSuccess(
+  window: GameplayBrowserWindow,
+  success: readonly GameplayPlaytestObservation[],
+  signal: AbortSignal,
+): Promise<string[]> {
+  const visible: string[] = [];
+  for (const observation of success) {
+    if (observation.kind !== 'text-visible' || !observation.value) continue;
+    if (await inspectTextVisibility(window, observation.value, signal)) visible.push(observation.value);
+  }
+  return visible;
 }
 
 async function inspectElementVisibility(
@@ -1780,6 +1878,36 @@ function buildReport(state: EvaluationState, checkedAt: Date): GameplayExperienc
       ? restartScreenObservations.every((observation) => observation.status === 'pass')
       : Boolean(restartResponded)) && restartObservationFailures.length === 0
     : null;
+  const wisdom = state.profile === 'wisdom';
+  const mistakeSteps = state.journey.filter((step) => step.action === 'mistake');
+  const mistakeFailures = mistakeSteps
+    .flatMap((step) => step.observations)
+    .filter((observation) => observation.status === 'repair');
+  const mistakeFeedbackProven = mistakeSteps.some((step) => step.observations.some((observation) =>
+    observation.kind === 'text-visible' && observation.status === 'pass'));
+  const failurePathPassed = mistakeSteps.length > 0
+    && mistakeFailures.length === 0
+    && mistakeFeedbackProven;
+  const levelStepIndexes = new Map<number, number>();
+  state.journey.forEach((step, stepIndex) => {
+    for (const observation of step.observations) {
+      if (observation.kind !== 'text-visible'
+        || observation.status !== 'pass'
+        || !observation.value) continue;
+      const match = /^第(\d+)关$/u.exec(observation.value.replace(/\s+/gu, ''));
+      if (!match) continue;
+      const level = Number(match[1]);
+      if (!levelStepIndexes.has(level)) levelStepIndexes.set(level, stepIndex);
+    }
+  });
+  const missingLevels = Array.from({ length: state.levelCount }, (_value, index) => index + 1)
+    .filter((level) => !levelStepIndexes.has(level));
+  const levelOrderViolation = [...levelStepIndexes.entries()]
+    .sort((left, right) => left[0] - right[0])
+    .some((entry, index, entries) => index > 0 && entry[1] <= entries[index - 1][1]);
+  const levelProgressionPassed = state.levelCount > 0
+    && missingLevels.length === 0
+    && !levelOrderViolation;
   const checks: GameplayExperienceCheck[] = [
     {
       id: 'load',
@@ -1846,6 +1974,52 @@ function buildReport(state: EvaluationState, checkedAt: Date): GameplayExperienc
           ? '重新开始操作产生了明确画面反馈。'
           : '重新开始操作没有产生可检测的画面反馈。',
     },
+    {
+      id: 'success-gated',
+      label: '通关条件延迟',
+      status: !wisdom || !state.loadCompleted
+        ? 'skipped'
+        : state.prematureSuccess.length === 0 ? 'pass' : 'repair',
+      message: !wisdom
+        ? '非智慧闯关项目，未启用通关延迟检查。'
+        : !state.loadCompleted
+          ? '预览未启动，无法检查开局画面。'
+          : state.prematureSuccess.length === 0
+            ? '开局画面未出现通关结算文本。'
+            : `开局已出现结算文本：${state.prematureSuccess.join('、')}。`,
+    },
+    {
+      id: 'failure-path',
+      label: '错误路径',
+      status: !wisdom
+        ? 'skipped'
+        : failurePathPassed ? 'pass' : 'repair',
+      message: !wisdom
+        ? '非智慧闯关项目，未启用错误路径检查。'
+        : mistakeSteps.length === 0
+          ? '试玩计划没有 mistake 步骤。'
+          : mistakeFailures.length > 0
+            ? `${mistakeFailures.length} 个错误反馈断言未通过。`
+            : !mistakeFeedbackProven
+              ? '错误步骤缺少可验证的 text-visible 反馈。'
+              : '错误决策产生了可见反馈与代价。',
+    },
+    {
+      id: 'level-progression',
+      label: '关卡递进',
+      status: !wisdom
+        ? 'skipped'
+        : levelProgressionPassed ? 'pass' : 'repair',
+      message: !wisdom
+        ? '非智慧闯关项目，未启用关卡递进检查。'
+        : state.levelCount === 0
+          ? '试玩计划没有声明 levels.count。'
+          : missingLevels.length > 0
+            ? `缺少关卡可见证据：${missingLevels.map((level) => `第${level}关`).join('、')}。`
+            : levelOrderViolation
+              ? '关卡编号没有按顺序出现在不同步骤，可能只是同屏罗列。'
+              : `已观察到 ${state.levelCount} 个关卡编号依次出现。`,
+    },
   ];
   const repairRequired = checks.some((check) => check.status === 'repair')
     || state.observations.some((observation) => observation.status === 'repair');
@@ -1889,6 +2063,7 @@ function inputsForJourneyStep(
   step: GameplayPlaytestJourneyStep,
 ): readonly GameplayPlaytestInput[] {
   if (step.inputs.length > 0) return step.inputs;
+  if (step.action === 'mistake') return manifest.actions.mistake?.inputs ?? [];
   if (
     step.action === 'start'
     || step.action === 'move'
@@ -1903,6 +2078,7 @@ function roleForJourneyAction(action: GameplayJourneyAction): GameplayActionRole
   return action === 'start'
     || action === 'move'
     || action === 'primary'
+    || action === 'mistake'
     || action === 'pause'
     || action === 'restart'
     ? action
@@ -2523,7 +2699,10 @@ function parseLatestGameplayExperienceReport(value: unknown): SharedGameplayExpe
   if (typeof value.checkedAt !== 'string' || Number.isNaN(Date.parse(value.checkedAt))) return null;
   if (value.reportPath !== 'artifacts/playtest/latest/report.json') return null;
   if (!Array.isArray(value.checks)) return null;
-  const validIds = new Set(['load', 'runtime-errors', 'visible-surface', 'input-response', 'continuous-render', 'restart']);
+  const validIds = new Set([
+    'load', 'runtime-errors', 'visible-surface', 'input-response', 'continuous-render', 'restart',
+    'success-gated', 'failure-path', 'level-progression',
+  ]);
   const checks: GameplayExperienceCheck[] = [];
   for (const rawCheck of value.checks) {
     if (!isRecord(rawCheck) || !validIds.has(String(rawCheck.id))) return null;
@@ -2599,6 +2778,7 @@ function isJourneyAction(value: string): value is GameplayJourneyAction {
     || value === 'start'
     || value === 'move'
     || value === 'primary'
+    || value === 'mistake'
     || value === 'pause'
     || value === 'restart'
     || value === 'wait';

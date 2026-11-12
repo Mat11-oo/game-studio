@@ -1,3 +1,5 @@
+import { readWorkshopProposal } from '../../shared/knowledgeWorkshop';
+import { WorkshopPlayer } from './WorkshopPlayer';
 import {
   AlertTriangle,
   Box,
@@ -23,7 +25,6 @@ import {
   Square,
   RefreshCw,
   Upload,
-  Users,
   X,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -31,35 +32,21 @@ import type { DragEvent, ReactNode } from 'react';
 
 import type {
   AssetPlanRecord,
-  AppSettings,
   FileNode,
   FileReadResult,
   GameAssetRecord,
   GameplayExperienceCheck,
   GameplayExperienceReport,
   PipelineStage,
-  NoobiCrewMember,
   ProjectInspectorPayload,
   ProjectRecord,
   ProjectStatus,
 } from '../../shared/contracts';
-import {
-  DEFAULT_NOOBI_CREW,
-  DEFAULT_NOOBI_SCENE_ID,
-  DEFAULT_NOOBI_SOLO_SCENE_ID,
-  DEFAULT_NOOBI_STAGE_MODE,
-} from '../../shared/contracts';
 import { toMessage } from '../ui';
-import { ProductionDiorama } from './ProductionDiorama';
-import {
-  NoobiCrewPicker,
-  NOOBI_CREW_ROLE_OPTIONS,
-} from './NoobiCrewPicker';
-import { NOOBI_PACK_OPTIONS } from './NoobiPackPicker';
 
 interface InspectorProps {
+  playOnly?: boolean;
   project: ProjectRecord;
-  settings: AppSettings;
   activityStage: PipelineStage;
   refreshSignal: number;
   onError: (message: string) => void;
@@ -71,8 +58,8 @@ interface InspectorProps {
 type InspectorTab = 'preview' | 'assets' | 'files';
 
 export function Inspector({
+  playOnly = false,
   project,
-  settings,
   activityStage,
   refreshSignal,
   onError,
@@ -80,7 +67,8 @@ export function Inspector({
   onRevealProject,
   onProjectUpdated,
 }: InspectorProps) {
-  const [tab, setTab] = useState<InspectorTab>('preview');
+  const [editingTab, setTab] = useState<InspectorTab>('preview');
+  const tab = playOnly ? 'preview' : editingTab;
   const [payload, setPayload] = useState<ProjectInspectorPayload>({
     files: [],
     previewUrl: '',
@@ -95,17 +83,17 @@ export function Inspector({
   const [retryingPlanId, setRetryingPlanId] = useState<string | null>(null);
   const [evaluatingExperience, setEvaluatingExperience] = useState(false);
   const [experienceReportOpen, setExperienceReportOpen] = useState(false);
+  const [restoringWorkshop, setRestoringWorkshop] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState('');
+  const [playingPrevious, setPlayingPrevious] = useState(false);
   const [previewRevision, setPreviewRevision] = useState(0);
   const [showBuildPreview, setShowBuildPreview] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [crewSaving, setCrewSaving] = useState(false);
-  const [crewEditorOpen, setCrewEditorOpen] = useState(false);
   const [assetNotice, setAssetNotice] = useState<{
     message: string;
     tone: 'success' | 'neutral';
   } | null>(null);
   const dragDepth = useRef(0);
-  const crewToggleRef = useRef<HTMLButtonElement>(null);
   const experienceCancelRequested = useRef(false);
   const previousProjectStatus = useRef(project.status);
   const imageGate = payload.imageGenerationGate;
@@ -121,17 +109,13 @@ export function Inspector({
     project.status,
     payload.experienceReport,
   );
-  const showProductionScene = !payload.previewUrl
-    || (project.status === 'running' && !showBuildPreview);
-  const resolvedNoobiPackId = project.noobiPackOverrideId
-    ?? settings.defaultNoobiPackId
-    ?? 'classic';
-  const globalNoobiCrew = settings.defaultNoobiCrew ?? DEFAULT_NOOBI_CREW;
-  const resolvedNoobiCrew = project.noobiCrewOverride ?? globalNoobiCrew;
-  const resolvedNoobiStageMode = settings.defaultNoobiStageMode ?? DEFAULT_NOOBI_STAGE_MODE;
-  const resolvedNoobiSoloSceneId = settings.defaultNoobiSoloSceneId ?? DEFAULT_NOOBI_SOLO_SCENE_ID;
-  const resolvedNoobiSceneId = settings.defaultNoobiSceneId ?? DEFAULT_NOOBI_SCENE_ID;
-  const resolvedNoobiPack = NOOBI_PACK_OPTIONS.find((option) => option.id === resolvedNoobiPackId);
+  const workshop = readWorkshopProposal(project.idea);
+  const previous = playingPrevious && Boolean(payload.workshopPreview?.previousPreviewUrl);
+  const playUrl = previous ? payload.workshopPreview!.previousPreviewUrl : payload.previewUrl;
+  const playVersion = previous ? payload.workshopPreview?.previous : payload.workshopPreview?.current;
+  const showProductionScene = !playUrl
+    || (!workshop && project.status === 'running' && !showBuildPreview);
+
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -151,7 +135,6 @@ export function Inspector({
     setAssetNotice(null);
     setShowBuildPreview(false);
     setExperienceReportOpen(false);
-    setCrewEditorOpen(false);
     void refresh();
   }, [project.id, project.root, refresh]);
 
@@ -168,8 +151,7 @@ export function Inspector({
 
   useEffect(() => {
     if (tab !== 'preview') {
-      setCrewEditorOpen(false);
-      setExperienceReportOpen(false);
+        setExperienceReportOpen(false);
     }
   }, [tab]);
 
@@ -200,24 +182,30 @@ export function Inspector({
     [project.id],
   );
 
+  async function restorePrevious() {
+    const version = payload.workshopPreview?.previous;
+    if (!version || restoringWorkshop) return;
+    setRestoringWorkshop(true);
+    setRestoreMessage('');
+    try {
+      const restored = await window.noobi.restoreWorkshop(project.id, version);
+      setPlayingPrevious(false);
+      setPayload(await window.noobi.inspectProject(project.id));
+      onProjectUpdated(restored.project);
+      setRestoreMessage(`原工程已备份到 ${restored.backup}`);
+    } catch (error) {
+      onError(toMessage(error));
+    } finally {
+      setRestoringWorkshop(false);
+    }
+  }
+
   async function regenerate(plan: AssetPlanRecord) {
     setRetryingPlanId(plan.id);
     try {
       await onRegenerate(plan);
     } finally {
       setRetryingPlanId(null);
-    }
-  }
-
-  async function selectNoobiCrew(noobiCrewOverride: readonly NoobiCrewMember[] | null) {
-    if (project.status === 'running' || crewSaving) return;
-    setCrewSaving(true);
-    try {
-      onProjectUpdated(await window.noobi.saveProjectNoobiCrew(project.id, noobiCrewOverride));
-    } catch (error) {
-      onError(toMessage(error));
-    } finally {
-      setCrewSaving(false);
     }
   }
 
@@ -249,7 +237,7 @@ export function Inspector({
     setEvaluatingExperience(true);
     try {
       const experienceReport = await window.noobi.evaluateProjectExperience(project.id);
-      setPayload((current) => ({ ...current, experienceReport }));
+      setPayload({ ...await window.noobi.inspectProject(project.id), experienceReport });
       setPreviewRevision((value) => value + 1);
     } catch (error) {
       if (!experienceCancelRequested.current) onError(toMessage(error));
@@ -337,6 +325,14 @@ export function Inspector({
           <span>PNG · JPEG · WEBP / 最多 50 张</span>
         </div>
       ) : null}
+      <header className="workshop-canvas-heading">
+        <img src={import.meta.env.BASE_URL + 'app-icon.png'} width={52} height={52} alt="" />
+        <div>
+          <small>{playOnly ? '冒险手册 / 游玩' : '冒险手册 / 制作'}</small>
+          <h2>{playOnly ? '进入游戏世界' : '游戏制作台'}</h2>
+          <p>{playOnly ? '在这里打开可玩版本和实验伙伴。' : '查看制作进度、素材和本机游戏预览。'}</p>
+        </div>
+      </header>
       <div className="inspector-tabs" role="tablist" aria-label="项目检查器">
         <button
           type="button"
@@ -372,7 +368,7 @@ export function Inspector({
       <div className="inspector-toolbar">
         <span>
           {tab === 'preview'
-            ? showProductionScene ? 'NOOBI PRODUCTION STUDIO' : 'LOCAL GAME PREVIEW'
+            ? showProductionScene ? '制作进度' : '本机游戏预览'
             : tab === 'assets'
               ? 'GAME ASSET LIBRARY'
               : 'PROJECT FILES'}
@@ -386,40 +382,6 @@ export function Inspector({
               expanded={experienceReportOpen}
               onToggle={() => setExperienceReportOpen((open) => !open)}
             />
-          ) : null}
-          {tab === 'preview' ? (
-            resolvedNoobiStageMode === 'crew' ? (
-              <button
-                className="inspector-crew-toggle"
-                type="button"
-                ref={crewToggleRef}
-                aria-expanded={crewEditorOpen}
-                aria-controls="project-noobi-crew-editor"
-                title="编辑项目 Noobi 制作编队"
-                onClick={() => setCrewEditorOpen((open) => !open)}
-              >
-                <Users size={13} aria-hidden="true" />
-                <span className="inspector-crew-avatars" aria-hidden="true">
-                  {resolvedNoobiCrew.map((member) => {
-                    const pack = NOOBI_PACK_OPTIONS.find((option) => option.id === member.packId);
-                    return pack ? (
-                      <i data-role={member.role} key={member.packId}>
-                        <img src={pack.avatarImage} alt="" draggable={false} />
-                      </i>
-                    ) : null;
-                  })}
-                </span>
-                <strong>{resolvedNoobiCrew.length}人</strong>
-              </button>
-            ) : (
-              <div className="inspector-solo-indicator" aria-label={`单人搭档：${resolvedNoobiPack?.avatarLabel ?? 'Noobi'}`}>
-                {resolvedNoobiPack ? <img src={resolvedNoobiPack.avatarImage} alt="" draggable={false} /> : null}
-                <span>
-                  <small>SOLO</small>
-                  <strong>单人</strong>
-                </span>
-              </div>
-            )
           ) : null}
           {tab === 'preview' && project.status === 'running' && payload.previewUrl ? (
             <button
@@ -467,65 +429,6 @@ export function Inspector({
         </div>
       </div>
 
-      {tab === 'preview' && resolvedNoobiStageMode === 'crew' && crewEditorOpen ? (
-        <aside
-          className="inspector-crew-panel"
-          id="project-noobi-crew-editor"
-          aria-label="项目 Noobi 制作编队"
-          onKeyDown={(event) => {
-            if (event.key !== 'Escape') return;
-            event.stopPropagation();
-            setCrewEditorOpen(false);
-            crewToggleRef.current?.focus();
-          }}
-        >
-          <header>
-            <div>
-              <small>PROJECT CREW</small>
-              <strong>项目制作编队</strong>
-              <span>{project.noobiCrewOverride === null ? '当前跟随全局默认编队' : '当前使用项目专属编队'}</span>
-            </div>
-            <div>
-              <button
-                className="crew-inherit-button"
-                type="button"
-                aria-pressed={project.noobiCrewOverride === null}
-                disabled={project.status === 'running' || crewSaving || project.noobiCrewOverride === null}
-                onClick={() => void selectNoobiCrew(null)}
-              >
-                跟随全局
-              </button>
-              <button
-                className="icon-button compact"
-                type="button"
-                aria-label="关闭编队编辑器"
-                onClick={() => setCrewEditorOpen(false)}
-              >
-                <X size={13} />
-              </button>
-            </div>
-          </header>
-          <NoobiCrewPicker
-            value={resolvedNoobiCrew}
-            disabled={project.status === 'running'}
-            busy={crewSaving}
-            label="项目 Noobi 制作编队"
-            onChange={(crew) => void selectNoobiCrew(crew)}
-          />
-          <footer>
-            {project.status === 'running'
-              ? 'Agent 工作期间编队已锁定；停止本轮后可以调整。'
-              : project.noobiCrewOverride === null
-                ? '修改任意角色或岗位后，会自动建立项目专属编队。'
-                : `${resolvedNoobiCrew.map((member) => {
-                    const role = NOOBI_CREW_ROLE_OPTIONS.find((item) => item.id === member.role);
-                    const pack = NOOBI_PACK_OPTIONS.find((item) => item.id === member.packId);
-                    return `${role?.label ?? member.role} · ${pack?.avatarLabel ?? member.packId}`;
-                  }).join('　')}`}
-          </footer>
-        </aside>
-      ) : null}
-
       {tab === 'assets' && assetNotice ? (
         <div className={`asset-import-notice is-${assetNotice.tone}`} role="status">
           {assetNotice.tone === 'neutral'
@@ -538,7 +441,9 @@ export function Inspector({
 
       {tab === 'preview' ? (
         <div className="preview-pane">
-          {!showProductionScene && payload.previewUrl ? (
+          {!showProductionScene && workshop && playVersion ? (
+            <WorkshopPlayer key={playVersion} projectId={project.id} name={project.name} url={playUrl} version={playVersion} proposal={workshop} />
+          ) : !showProductionScene && payload.previewUrl ? (
             <iframe
               key={`${payload.previewUrl}:${previewRevision}`}
               src={`${payload.previewUrl}?noobi=${previewRevision}`}
@@ -546,23 +451,18 @@ export function Inspector({
               sandbox="allow-scripts allow-same-origin allow-pointer-lock"
             />
           ) : (
-            <ProductionDiorama
-              key={`${resolvedNoobiStageMode}:${resolvedNoobiPackId}:${resolvedNoobiSoloSceneId}:${resolvedNoobiSceneId}`}
-              stageMode={resolvedNoobiStageMode}
-              packId={resolvedNoobiPackId}
-              crew={resolvedNoobiCrew}
-              sceneId={resolvedNoobiSceneId}
-              soloSceneId={resolvedNoobiSoloSceneId}
-              stage={activityStage}
-              status={project.status}
-            />
+            <div className="preview-empty workshop-preview-empty">
+              <img src={import.meta.env.BASE_URL + 'app-icon.png'} alt="" width={88} height={88} />
+              <strong>{project.status === 'running' ? '正在制作游戏' : '等待可玩的游戏版本'}</strong>
+              <span>{project.status === 'running' ? '完成构建与试玩检查后，游戏会在这里打开。' : '游戏制作完成后，可以在这里开始游玩。'}</span>
+            </div>
           )}
           {showExperienceReport && experienceReportOpen ? (
             <ExperienceReport
               report={payload.experienceReport}
               projectStatus={project.status}
               evaluating={evaluatingExperience}
-              disabled={project.status === 'running' || !payload.previewUrl}
+              disabled={project.status === 'running' || (!payload.previewUrl && !workshop)}
               onClose={() => setExperienceReportOpen(false)}
               onEvaluate={() => void evaluateExperience()}
               onCancel={() => void cancelExperience()}
@@ -579,8 +479,19 @@ export function Inspector({
             >
               <FolderOpen size={13} /> 在 Finder 中显示
             </button>
-            {payload.previewUrl ? (
-              <a href={payload.previewUrl} target="_blank" rel="noreferrer">
+            {payload.workshopPreview?.previousPreviewUrl && (
+              <button type="button" onClick={() => setPlayingPrevious(!previous)}>
+                {previous ? '返回当前可玩版本' : '试玩上一可玩版本'}
+              </button>
+            )}
+            {previous && (
+              <button type="button" onClick={() => void restorePrevious()} disabled={restoringWorkshop || project.status === 'running'}>
+                {restoringWorkshop ? '正在恢复…' : '恢复为当前工程'}
+              </button>
+            )}
+            {restoreMessage && <span role="status">{restoreMessage}</span>}
+            {playUrl && !workshop ? (
+              <a href={playUrl} target="_blank" rel="noreferrer">
                 新窗口 <ExternalLink size={12} />
               </a>
             ) : null}
@@ -984,7 +895,7 @@ function AssetStudio({
         : '宿主私有证明中没有可信生成图片；请检查图像 API 或 Codex ImageGen 后继续制作并重新验证。'
       : hasTrustedUnreferencedImage
         ? '宿主已验证图片来源，下一步需要让游戏生产代码真实加载并显示它。'
-        : 'Noobi 优先使用已配置图像 API，否则回退 Codex ImageGen；成功后会自动出现在这里。';
+        : '工坊优先使用已配置图像 API，否则回退 Codex ImageGen；成功后会自动出现在这里。';
     return (
       <div className={`asset-empty requirement-imagegen${terminal ? ' is-error' : ''}`}>
         <ImageIcon size={28} />

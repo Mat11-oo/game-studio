@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="utf-8" />
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('noobi-site-lang');
+        const lang = saved || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+        document.documentElement.dataset.lang = lang;
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      } catch (_) {
+        document.documentElement.dataset.lang = 'en';
+      }
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>游戏工坊 — Turn one idea into a playable game</title>
+  <meta name="description" content="游戏工坊 is a local-first desktop production agent that turns one game idea into a reviewed, playable Web or Godot 4 game with Codex App Server." />
+  <meta name="theme-color" content="#fbf3e7" />
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="游戏工坊 — reviewed, playable games from one prompt" />
+  <meta property="og:description" content="Planner → Implementer → Reviewer → build → automated playtest. Try the workbench in your browser." />
+  <meta property="og:image" content="https://innate-labs.github.io/Noobi.ai/assets/home.jpg" />
+  <meta property="og:url" content="https://innate-labs.github.io/Noobi.ai/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">
+    <span class="lang-en">Skip to content</span><span class="lang-zh">跳到正文</span>
+  </a>
+
+  <header class="site-nav">
+    <a class="brand" href="./" aria-label="游戏工坊 home">
+      <img src="./assets/icon.png" alt="" width="40" height="40" />
+      <span class="brand-copy">
+        <strong>游戏工坊</strong>
+        <small>知识冒险工坊</small>
+      </span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#demo"><span class="lang-en">Demo</span><span class="lang-zh">在线演示</span></a>
+      <a href="#features"><span class="lang-en">Features</span><span class="lang-zh">能力</span></a>
+      <a href="#pipeline"><span class="lang-en">How it works</span><span class="lang-zh">制作流程</span></a>
+      <a href="#start"><span class="lang-en">Quick start</span><span class="lang-zh">快速开始</span></a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="lang-toggle" id="lang-toggle" type="button" aria-label="Switch language">中文</button>
+      <a class="nav-github" href="https://github.com/Innate-Labs/Noobi.ai" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
+        </svg>
+        <span class="lang-en">GitHub</span><span class="lang-zh">GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <span class="eyebrow">
+          <i aria-hidden="true"></i>
+          <span class="lang-en">LOCAL-FIRST GAME PRODUCTION AGENT</span>
+          <span class="lang-zh">本地优先的游戏制作 Agent</span>
+        </span>
+        <h1>
+          <span class="lang-en">One idea in.<br /><em>A reviewed, playable game</em> out.</span>
+          <span class="lang-zh">一句创意进去，<br /><em>一款经过审查的可玩游戏</em>出来。</span>
+        </h1>
+        <p class="hero-lede lang-en">
+          游戏工坊 gives Codex a bounded production loop: a read-only Planner scopes the work,
+          an Implementer builds inside an isolated project, an independent Reviewer checks the
+          result, and the host builds and playtests before delivery.
+        </p>
+        <p class="hero-lede lang-zh">
+          游戏工坊把 Codex 放进一条有边界的制作循环：只读 Planner 拆解任务，Implementer
+          在独立工程里实现，独立 Reviewer 检查真实结果，宿主完成正式构建与自动试玩后才交付。
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="./demo/">
+            <span class="lang-en">Play the web demo</span><span class="lang-zh">进入在线演示</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/Innate-Labs/Noobi.ai" target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+            <span class="lang-en">View on GitHub</span><span class="lang-zh">查看 GitHub</span>
+          </a>
+        </div>
+
+        <ul class="hero-facts">
+          <li><b aria-hidden="true">✓</b><span class="lang-en">No install</span><span class="lang-zh">无需安装</span></li>
+          <li><b aria-hidden="true">✓</b><span class="lang-en">A 3-level playable game</span><span class="lang-zh">三关可玩游戏</span></li>
+          <li><b aria-hidden="true">✓</b><span class="lang-en">Mocked agent run</span><span class="lang-zh">模拟 Agent 流程</span></li>
+        </ul>
+      </div>
+
+      <div class="hero-art">
+        <div class="shot-frame">
+          <div class="shot-bar">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="shot-url">innate-labs.github.io/Noobi.ai/demo</span>
+            <span class="shot-live"><i aria-hidden="true"></i> LIVE</span>
+          </div>
+          <img src="./assets/home.jpg" width="1800" height="1111" alt="游戏工坊 workbench home screen" fetchpriority="high" />
+        </div>
+        <span class="sticker sticker-plan" aria-hidden="true">PLANNER</span>
+        <span class="sticker sticker-review" aria-hidden="true">REVIEWER ✓</span>
+        <span class="sticker sticker-play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          PLAYABLE
+        </span>
+        <svg class="spark" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
+          <path d="M20 2l2.6 13.4L36 18l-13.4 2.6L20 34l-2.6-13.4L4 18l13.4-2.6z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="stat-band" aria-label="Project facts">
+      <div><strong>2</strong><span class="lang-en">engines · Web + Godot 4</span><span class="lang-zh">引擎 · Web + Godot 4</span></div>
+      <div><strong>8</strong><span class="lang-en">bounded pipeline stages</span><span class="lang-zh">个受控制作阶段</span></div>
+      <div><strong>3</strong><span class="lang-en">max repair rounds</span><span class="lang-zh">轮上限修复</span></div>
+      <div><strong>1</strong><span class="lang-en">workspace you own</span><span class="lang-zh">份归你所有的工程</span></div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>PLANNER</span><i>→</i><span>IMPLEMENTER</span><i>→</i><span>REVIEWER</span><i>→</i><span>BUILD</span><i>→</i><span>PLAYTEST</span><i>→</i><span>DELIVER</span><i>→</i>
+        <span>PLANNER</span><i>→</i><span>IMPLEMENTER</span><i>→</i><span>REVIEWER</span><i>→</i><span>BUILD</span><i>→</i><span>PLAYTEST</span><i>→</i><span>DELIVER</span><i>→</i>
+      </div>
+    </div>
+
+    <section class="section demo-section" id="demo">
+      <header class="section-head">
+        <span class="eyebrow"><i aria-hidden="true"></i><span class="lang-en">TRY IT NOW</span><span class="lang-zh">立即体验</span></span>
+        <h2>
+          <span class="lang-en">The workbench runs <em>in your browser</em>.</span>
+          <span class="lang-zh">工作台现在就能<em>在浏览器里运行</em>。</span>
+        </h2>
+        <p>
+          <span class="lang-en">Real UI, real playable output, mocked local backend. Open the sample game, replay a full production run, then inspect the generated project files — no install, no account.</span>
+          <span class="lang-zh">真实界面、真实可玩产物，本地后端由演示数据模拟。打开示例游戏、重放一整轮制作流程，再翻看生成的工程文件——不用安装，也不用登录。</span>
+        </p>
+      </header>
+
+      <div class="demo-grid">
+        <a class="demo-card demo-card-game" href="./demo/">
+          <div class="demo-media">
+            <img src="./assets/game.jpg" width="1800" height="1032" alt="Moonlit Greenhouse knowledge game" loading="lazy" />
+            <span class="demo-tag">EXAMPLE OUTPUT</span>
+            <span class="play-badge" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+          </div>
+          <div class="demo-body">
+            <div>
+              <small class="lang-en">Playable sample · 3 levels</small>
+              <small class="lang-zh">可玩示例 · 三关</small>
+              <h3><span class="lang-en">Moonlit Greenhouse</span><span class="lang-zh">月光温室</span></h3>
+              <p><span class="lang-en">A grade-5 area-math adventure generated by the workshop: read the bed dimensions, submit an answer, lose energy on mistakes, harvest stars.</span><span class="lang-zh">工坊产出的五年级面积知识闯关：读尺寸、先判断再提交，答错扣能量，通关按表现结算星级。</span></p>
+            </div>
+            <span class="demo-cta"><span class="lang-en">Start playing</span><span class="lang-zh">开始游玩</span> →</span>
+          </div>
+        </a>
+
+        <a class="demo-card demo-card-studio" href="./demo/">
+          <div class="demo-media">
+            <img src="./assets/workbench.jpg" width="1800" height="1111" alt="游戏工坊 production workbench with event stream and preview" loading="lazy" />
+            <span class="demo-tag">PRODUCTION RUN</span>
+          </div>
+          <div class="demo-body">
+            <div>
+              <small class="lang-en">Simulated agent · ~15s</small>
+              <small class="lang-zh">模拟 Agent · 约 15 秒</small>
+              <h3><span class="lang-en">Watch a run finish</span><span class="lang-zh">看一轮制作跑完</span></h3>
+              <p><span class="lang-en">Write an idea, confirm the workshop proposal, then watch stages, tool calls, file writes and the playtest report stream into the workbench.</span><span class="lang-zh">写下创意、确认提案，然后看阶段推进、工具调用、文件写入与试玩报告依次出现在工作台里。</span></p>
+            </div>
+            <span class="demo-cta"><span class="lang-en">Open the demo</span><span class="lang-zh">打开演示</span> →</span>
+          </div>
+        </a>
+      </div>
+
+      <p class="demo-note">
+        <span class="lang-en"><b>Note:</b> the web demo mocks the Electron bridge. The desktop app runs the real Codex App Server, writes real files and executes real builds and playtests.</span>
+        <span class="lang-zh"><b>说明：</b>演示版模拟了 Electron 桥接层；桌面版会运行真实 Codex App Server、写入真实文件，并执行真实构建与试玩。</span>
+      </p>
+    </section>
+
+    <section class="section" id="features">
+      <header class="section-head">
+        <span class="eyebrow"><i aria-hidden="true"></i><span class="lang-en">WHY 游戏工坊</span><span class="lang-zh">为什么是游戏工坊</span></span>
+        <h2>
+          <span class="lang-en">Not one agent improvising. <em>A&nbsp;production&nbsp;system.</em></span>
+          <span class="lang-zh">不是一个 Agent 即兴发挥，<em>而是一条制作系统</em>。</span>
+        </h2>
+        <p>
+          <span class="lang-en">Every stage has a bounded role, a writable surface and a verifiable output. Failed checks go back to the same Implementer instead of starting over.</span>
+          <span class="lang-zh">每个阶段都有明确角色、可写边界与可验证产物；检查失败会交回同一个 Implementer 修复，而不是推倒重来。</span>
+        </p>
+      </header>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18 16l.9 2.1L21 19l-2.1.9L18 22l-.9-2.1L15 19l2.1-.9z"/></svg>
+          </span>
+          <h3><span class="lang-en">From prompt to playable</span><span class="lang-zh">从创意到可玩</span></h3>
+          <p><span class="lang-en">The Agent picks Web or Godot 4, produces a real standalone project and previews it locally — not a mockup or a single HTML snippet.</span><span class="lang-zh">Agent 自行判断 Web 或 Godot 4，产出真实独立工程并在本地预览——不是示意图，也不是一段 HTML。</span></p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-2.9 8.3-7 9.5C7.9 19.3 5 15.4 5 11V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          </span>
+          <h3><span class="lang-en">Review-gated loop</span><span class="lang-zh">审查门禁循环</span></h3>
+          <p><span class="lang-en">Planner → Implementer → Reviewer → formal build → automated playtest. Failed review, build or playtest checks trigger up to three repair rounds.</span><span class="lang-zh">Planner → Implementer → Reviewer → 正式构建 → 自动试玩；任一环节失败最多触发三轮有界修复。</span></p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M8 11l2.5 2.5L16 8"/></svg>
+          </span>
+          <h3><span class="lang-en">Automated experience evaluation</span><span class="lang-zh">自动体验评测</span></h3>
+          <p><span class="lang-en">A sandboxed hidden browser exercises the core controls, captures evidence and checks visible gameplay, animation continuity and runtime errors.</span><span class="lang-zh">隔离的隐藏浏览器会操作核心玩法、记录证据，检查可见画面、动画连续性与运行错误。</span></p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          </span>
+          <h3><span class="lang-en">Real media pipeline</span><span class="lang-zh">真实多媒体管线</span></h3>
+          <p><span class="lang-en">Images, music, speech, sound effects and 3D route through configured providers, Codex ImageGen, imported assets or procedural fallbacks.</span><span class="lang-zh">图片、音乐、语音、音效和 3D 可走配置的 Provider、Codex ImageGen、导入素材或程序化回退。</span></p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 13h6M12 10v6"/></svg>
+          </span>
+          <h3><span class="lang-en">A workspace you own</span><span class="lang-zh">工程归你所有</span></h3>
+          <p><span class="lang-en">Every game is a normal local project: inspect the files, continue with Codex, commit to Git or take it outside 游戏工坊 entirely.</span><span class="lang-zh">每个游戏都是普通本地工程：检查文件、继续用 Codex 修改、提交 Git，或完全脱离游戏工坊使用。</span></p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H6a2 2 0 0 0-2 2v4M14 4h4a2 2 0 0 1 2 2v4M10 20H6a2 2 0 0 1-2-2v-4M14 20h4a2 2 0 0 0 2-2v-4"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          </span>
+          <h3><span class="lang-en">Built to extend</span><span class="lang-zh">为扩展而设计</span></h3>
+          <p><span class="lang-en">Add media providers, Codex Skills, MCP servers, agent prompts, project templates, Godot export targets or an entirely different workbench UI.</span><span class="lang-zh">可增加媒体 Provider、Codex Skills、MCP Server、角色提示词、工程模板、Godot 导出目标或全新的工作台 UI。</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section pipeline-section" id="pipeline">
+      <header class="section-head">
+        <span class="eyebrow"><i aria-hidden="true"></i><span class="lang-en">BOUNDED BY DESIGN</span><span class="lang-zh">有边界的设计</span></span>
+        <h2>
+          <span class="lang-en">Five gates before <em>“done”</em>.</span>
+          <span class="lang-zh">在说“完成”之前，<em>要过五道关</em>。</span>
+        </h2>
+        <p>
+          <span class="lang-en">The host — not the model — decides whether a game is finished. Each gate produces evidence: a plan, a diff, a review, a production build, a playtest report.</span>
+          <span class="lang-zh">判定“完成”的是宿主，不是模型。每道关都留下证据：计划、改动、审查、正式构建、试玩报告。</span>
+        </p>
+      </header>
+
+      <ol class="pipeline">
+        <li>
+          <span class="step-num">01</span>
+          <h3><span class="lang-en">Brief</span><span class="lang-zh">需求</span></h3>
+          <p><span class="lang-en">Natural-language idea plus reference files, grade level and knowledge target.</span><span class="lang-zh">自然语言创意，加上参考文件、年级与知识目标。</span></p>
+        </li>
+        <li>
+          <span class="step-num">02</span>
+          <h3><span class="lang-en">Plan</span><span class="lang-zh">规划</span></h3>
+          <p><span class="lang-en">A read-only Planner scopes levels, variables, failure paths and acceptance checks.</span><span class="lang-zh">只读 Planner 拆解关卡、变量、失败路径与验收标准。</span></p>
+        </li>
+        <li>
+          <span class="step-num">03</span>
+          <h3><span class="lang-en">Build</span><span class="lang-zh">实现</span></h3>
+          <p><span class="lang-en">The Implementer writes only inside the isolated game project directory.</span><span class="lang-zh">Implementer 只在隔离的游戏工程目录内写入。</span></p>
+        </li>
+        <li>
+          <span class="step-num">04</span>
+          <h3><span class="lang-en">Review</span><span class="lang-zh">审查</span></h3>
+          <p><span class="lang-en">An independent read-only Reviewer scores artifacts, knowledge and playability.</span><span class="lang-zh">独立只读 Reviewer 对产物、知识与可玩性评分。</span></p>
+        </li>
+        <li>
+          <span class="step-num">05</span>
+          <h3><span class="lang-en">Verify</span><span class="lang-zh">验证</span></h3>
+          <p><span class="lang-en">The host builds production output and runs a hidden-browser playtest, then repairs if needed.</span><span class="lang-zh">宿主构建正式产物并执行隐藏浏览器试玩，必要时进入修复。</span></p>
+        </li>
+      </ol>
+
+      <div class="loop-note">
+        <span class="loop-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>
+        </span>
+        <p>
+          <span class="lang-en"><b>Repair loop.</b> A failed review, build or playtest returns to the same Implementer with concrete evidence — capped at three rounds, so a run can fail honestly instead of looping forever.</span>
+          <span class="lang-zh"><b>修复回路。</b>审查、构建或试玩失败会带着具体证据回到同一个 Implementer，最多三轮；宁可诚实失败，也不无限循环。</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="section workbench-section">
+      <div class="workbench-copy">
+        <span class="eyebrow"><i aria-hidden="true"></i><span class="lang-en">INSIDE THE WORKBENCH</span><span class="lang-zh">工作台内部</span></span>
+        <h2>
+          <span class="lang-en">Everything you need to judge the build.</span>
+          <span class="lang-zh">判断一个版本好坏，需要的东西都在一屏里。</span>
+        </h2>
+        <ul class="check-list">
+          <li>
+            <b>01</b>
+            <div>
+              <strong><span class="lang-en">Live production pipeline</span><span class="lang-zh">实时制作进度</span></strong>
+              <span><span class="lang-en">See the active stage and every tool call, file write and verification result as it happens.</span><span class="lang-zh">当前阶段、工具调用、文件写入与验证结果，随制作实时出现。</span></span>
+            </div>
+          </li>
+          <li>
+            <b>02</b>
+            <div>
+              <strong><span class="lang-en">Playable build + playtest score</span><span class="lang-zh">可玩构建 + 试玩评分</span></strong>
+              <span><span class="lang-en">The production build opens in the inspector with the hidden-browser playtest verdict beside it.</span><span class="lang-zh">正式构建直接在检查器里打开，旁边是隐藏浏览器试玩的判定与评分。</span></span>
+            </div>
+          </li>
+          <li>
+            <b>03</b>
+            <div>
+              <strong><span class="lang-en">Assets and project files</span><span class="lang-zh">素材与工程文件</span></strong>
+              <span><span class="lang-en">Inspect generated media, the real file tree and the playtest manifest without leaving the app.</span><span class="lang-zh">不必离开应用，就能查看生成素材、真实文件树与试玩清单。</span></span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="workbench-shot">
+        <img src="./assets/workbench.jpg" width="1800" height="1111" alt="游戏工坊 workbench showing the pipeline, event stream and playable preview" loading="lazy" />
+        <span class="shot-stamp" aria-hidden="true">PLAYTEST<br />PASS · 94</span>
+      </div>
+    </section>
+
+    <section class="start-section" id="start">
+      <div class="start-inner">
+        <div class="start-copy">
+          <span class="eyebrow light"><i aria-hidden="true"></i><span class="lang-en">RUN IT LOCALLY</span><span class="lang-zh">在本地运行</span></span>
+          <h2>
+            <span class="lang-en">Clone it. Sign in. <em>Make a game.</em></span>
+            <span class="lang-zh">克隆、登录，<em>然后做一个游戏</em>。</span>
+          </h2>
+          <p>
+            <span class="lang-en">The desktop app is a macOS developer preview. It needs Node.js 22, a ChatGPT/Codex account and an available image route.</span>
+            <span class="lang-zh">桌面版目前是 macOS 开发者预览，需要 Node.js 22、ChatGPT/Codex 账户和可用的图片生成路线。</span>
+          </p>
+          <ul class="req-list">
+            <li><span class="lang-en">macOS (tested target)</span><span class="lang-zh">macOS（当前测试目标）</span></li>
+            <li><span class="lang-en">Node.js 22 LTS + npm</span><span class="lang-zh">Node.js 22 LTS + npm</span></li>
+            <li><span class="lang-en">ChatGPT / Codex account</span><span class="lang-zh">ChatGPT / Codex 账户</span></li>
+            <li><span class="lang-en">Godot 4 only when the Agent picks it</span><span class="lang-zh">仅当 Agent 选择 Godot 时才需要 Godot 4</span></li>
+          </ul>
+        </div>
+
+        <div class="code-card">
+          <div class="code-head">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>quick start</span>
+            <button class="copy-btn" id="copy-btn" type="button" data-copied-en="Copied" data-copied-zh="已复制">
+              <span class="lang-en">Copy</span><span class="lang-zh">复制</span>
+            </button>
+          </div>
+          <pre><code id="quickstart">git clone https://github.com/Innate-Labs/Noobi.ai.git
+cd Noobi.ai
+npm ci
+npm run dev</code></pre>
+          <p class="code-foot">
+            <span class="lang-en">First launch: <b>Settings → Codex account</b> to sign in. 游戏工坊 keeps an app-private Codex home and never overwrites your global <code>~/.codex</code>.</span>
+            <span class="lang-zh">首次启动：打开<b>设置 → Codex 账户</b>登录。游戏工坊使用应用私有的 Codex 目录，不会覆盖全局 <code>~/.codex</code>。</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section final-cta">
+      <div class="final-inner">
+        <h2>
+          <span class="lang-en">Your next idea deserves <em>a real build.</em></span>
+          <span class="lang-zh">下一句创意，值得<em>一个真实构建</em>。</span>
+        </h2>
+        <p>
+          <span class="lang-en">Try the workbench in your browser first, then run the desktop app when you are ready for real Codex runs.</span>
+          <span class="lang-zh">先在浏览器里试用工作台，准备好真实 Codex 制作时再运行桌面版。</span>
+        </p>
+        <div class="cta-row center">
+          <a class="btn btn-primary" href="./demo/">
+            <span class="lang-en">Open the web demo</span><span class="lang-zh">打开在线演示</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/Innate-Labs/Noobi.ai" target="_blank" rel="noreferrer">
+            <span class="lang-en">Star on GitHub</span><span class="lang-zh">在 GitHub 上加星</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <img src="./assets/icon.png" alt="" width="34" height="34" />
+      <div>
+        <strong>游戏工坊</strong>
+        <span><span class="lang-en">A knowledge adventure workshop by Innate Labs.</span><span class="lang-zh">由 Innate Labs 打造的知识冒险工坊。</span></span>
+      </div>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/Innate-Labs/Noobi.ai" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://github.com/Innate-Labs/Noobi.ai/blob/main/README.zh-CN.md" target="_blank" rel="noreferrer"><span class="lang-en">中文 README</span><span class="lang-zh">中文 README</span></a>
+      <a href="https://github.com/Innate-Labs/Noobi.ai/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noreferrer"><span class="lang-en">Architecture</span><span class="lang-zh">架构文档</span></a>
+      <a href="https://github.com/Innate-Labs/Noobi.ai/releases" target="_blank" rel="noreferrer">Releases</a>
+    </div>
+    <p class="footer-note">
+      <span class="lang-en">Developer preview · macOS · No signed or notarized binary is published yet.</span>
+      <span class="lang-zh">开发者预览 · macOS · 暂未发布已签名、公证的安装包。</span>
+    </p>
+  </footer>
+
+  <script src="./main.js" defer></script>
+</body>
+</html>

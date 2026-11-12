@@ -39,13 +39,14 @@ export function Pipeline({ stage, status, compact = false }: PipelineProps) {
   const listRef = useRef<HTMLOListElement>(null);
 
   useEffect(() => {
+    if (compact) return;
     const active = listRef.current?.querySelector<HTMLElement>(`[data-stage="${stage}"]`);
     active?.scrollIntoView({
       block: 'nearest',
       inline: 'center',
       behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     });
-  }, [stage]);
+  }, [compact, stage]);
 
   return (
     <section className={`pipeline${compact ? ' is-compact' : ''}`} aria-label="游戏制作流程">
@@ -73,7 +74,7 @@ export function Pipeline({ stage, status, compact = false }: PipelineProps) {
               <span className="pipeline-number">
                 {done ? <Check size={12} /> : String(index + 1).padStart(2, '0')}
               </span>
-              <Icon size={15} />
+              <Icon size={15} aria-hidden="true" />
               <span>
                 <strong>{item.label}</strong>
                 <small>{item.short}</small>

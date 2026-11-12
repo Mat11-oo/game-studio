@@ -1,3 +1,4 @@
+import { readWorkshopProposal } from '../../shared/knowledgeWorkshop';
 import { ArrowUp, Play, Square, WandSparkles } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -132,7 +133,7 @@ export function Composer({
       return;
     }
     const nextPrompt = prompt.trim()
-      || (project.status === 'draft' ? project.idea : '继续完成并验证当前游戏。');
+      || (project.status === 'draft' ? (readWorkshopProposal(project.idea)?.plan ?? project.idea) : '继续完成并验证当前游戏。');
     await onRun(nextPrompt, activeModel?.model ?? null, effort || null);
     setPrompt('');
   }

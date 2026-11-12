@@ -1,6 +1,6 @@
-# Contributing to Noobi.ai
+# Contributing to 游戏工坊
 
-Thanks for helping make Noobi.ai safer, more portable and easier to extend. Focused pull requests are the easiest to review and merge.
+Thanks for helping make 游戏工坊 safer, more portable and easier to extend. Focused pull requests are the easiest to review and merge.
 
 ## Good places to contribute
 

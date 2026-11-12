@@ -1,3 +1,4 @@
+import type { WorkshopProposal } from './knowledgeWorkshop.js';
 export type PipelineStage =
   | 'brief'
   | 'scaffold'
@@ -106,7 +107,7 @@ export function isTargetFrameRate(value: unknown): value is TargetFrameRate {
     && TARGET_FRAME_RATES.some((frameRate) => frameRate === value);
 }
 
-export type ProjectIconSource = 'procedural' | 'ai';
+export type ProjectIconSource = 'procedural' | 'themed' | 'ai';
 
 export interface ProjectIcon {
   /** Icon PNG path relative to the project root (host-owned, e.g. `.noobi/icon.png`). */
@@ -274,6 +275,7 @@ export interface BootstrapPayload {
 }
 
 export interface CreateProjectInput {
+  workshopProposal?: WorkshopProposal;
   idea: string;
   projectDirectory: string;
   model?: string | null;
@@ -399,7 +401,10 @@ export type GameplayExperienceCheckId =
   | 'visible-surface'
   | 'input-response'
   | 'continuous-render'
-  | 'restart';
+  | 'restart'
+  | 'success-gated'
+  | 'failure-path'
+  | 'level-progression';
 
 export type GameplayExperienceCheckStatus = 'pass' | 'repair' | 'skipped';
 
@@ -427,6 +432,7 @@ export interface GameplayExperienceReport {
 }
 
 export interface ProjectInspectorPayload {
+  workshopPreview?: { current: string; previous: string | null; previousPreviewUrl: string };
   files: FileNode[];
   previewUrl: string;
   assets: GameAssetRecord[];
@@ -545,6 +551,8 @@ export interface LoginStartResult {
 
 export interface NoobiApi {
   bootstrap(): Promise<BootstrapPayload>;
+  restoreWorkshop(projectId: string, version: string): Promise<{ project: ProjectRecord; backup: string }>;
+  askWorkshop(projectId: string, question: string, state: string): Promise<string>;
   refreshRuntime(): Promise<RuntimeStatus>;
   startLogin(): Promise<LoginStartResult>;
   logout(): Promise<RuntimeStatus>;

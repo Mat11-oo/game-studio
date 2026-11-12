@@ -40,6 +40,8 @@ function subscribe<T>(channel: string, listener: (payload: T) => void): () => vo
 }
 
 const api: NoobiApi = {
+  restoreWorkshop: (projectId, version) => ipcRenderer.invoke('workshop:restore', projectId, version),
+  askWorkshop: (projectId, question, state) => ipcRenderer.invoke('workshop:ask', projectId, question, state),
   bootstrap: () => ipcRenderer.invoke('noobi:bootstrap') as Promise<BootstrapPayload>,
   refreshRuntime: () => ipcRenderer.invoke('noobi:runtime:refresh') as Promise<RuntimeStatus>,
   startLogin: () => ipcRenderer.invoke('noobi:runtime:login') as Promise<LoginStartResult>,

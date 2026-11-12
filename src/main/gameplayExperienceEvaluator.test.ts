@@ -7,6 +7,7 @@ import {
   GameplayExperienceEvaluator,
   archiveLatestGameplayExperienceReport,
   parseLoopbackPreviewUrl,
+  assertWisdomPlaytestManifest,
   parseGameplayPlaytestManifest,
   readLatestGameplayExperienceReport,
   sampledBitmapDifference,
@@ -173,6 +174,9 @@ describe('GameplayExperienceEvaluator', () => {
       ['input-response', 'pass'],
       ['continuous-render', 'pass'],
       ['restart', 'pass'],
+      ['success-gated', 'skipped'],
+      ['failure-path', 'skipped'],
+      ['level-progression', 'skipped'],
     ]);
     expect(report.actions).toHaveLength(validManifest().journey.length + 1);
     expect(report.observations).toContainEqual(expect.objectContaining({
@@ -790,6 +794,169 @@ describe('GameplayExperienceEvaluator', () => {
   });
 });
 
+describe('wisdom level profile', () => {
+  it('requires mistake, three levels, and a terminal assertion', () => {
+    const manifest = parseGameplayPlaytestManifest(wisdomManifest());
+    expect(manifest.levels).toEqual({ count: 3 });
+    expect(manifest.actions.mistake?.inputs).toHaveLength(1);
+    expect(() => assertWisdomPlaytestManifest(manifest)).not.toThrow();
+
+    const withoutMistake = { ...wisdomManifest(), actions: { ...wisdomManifest().actions } };
+    delete (withoutMistake.actions as Record<string, unknown>).mistake;
+    expect(() => assertWisdomPlaytestManifest(parseGameplayPlaytestManifest(withoutMistake)))
+      .toThrow('actions.mistake');
+
+    const onlyTwoLevels = { ...wisdomManifest(), levels: { count: 2 } };
+    expect(() => assertWisdomPlaytestManifest(parseGameplayPlaytestManifest(onlyTwoLevels)))
+      .toThrow('levels.count');
+  });
+
+  it('passes the mistake and level gates and blocks an early terminal screen', async () => {
+    const root = await temporaryRoot();
+    await mkdir(join(root, '.noobi'), { recursive: true });
+    await mkdir(join(root, 'dist'), { recursive: true });
+    await writeFile(join(root, '.noobi/playtest.json'), `${JSON.stringify(wisdomManifest(), null, 2)}\n`);
+    await writeFile(join(root, 'dist/index.html'), '<!doctype html><canvas></canvas>');
+
+    const window = new MockWindow((index) => animatedFrame(index));
+    window.web.textVisibility = (text) => text !== '闯关完成' || window.web.captureCount >= 10;
+    const report = await evaluatorFor(window).evaluate({
+      projectRoot: root,
+      previewUrl: 'http://127.0.0.1:41031/',
+      profile: 'wisdom',
+      initialDelayMs: 0,
+      keyHoldMs: 0,
+      actionDelayMs: 0,
+      settleDelayMs: 0,
+    });
+
+    expect(report.checks.find((check) => check.id === 'failure-path')?.status).toBe('pass');
+    expect(report.checks.find((check) => check.id === 'level-progression')?.status).toBe('pass');
+    expect(report.checks.find((check) => check.id === 'success-gated')?.status).toBe('pass');
+  });
+
+  it('marks a terminal screen that is already visible at launch as a repair', async () => {
+    const root = await temporaryRoot();
+    await mkdir(join(root, '.noobi'), { recursive: true });
+    await mkdir(join(root, 'dist'), { recursive: true });
+    await writeFile(join(root, '.noobi/playtest.json'), `${JSON.stringify(wisdomManifest(), null, 2)}\n`);
+    await writeFile(join(root, 'dist/index.html'), '<!doctype html><canvas></canvas>');
+
+    const window = new MockWindow((index) => animatedFrame(index));
+    const report = await evaluatorFor(window).evaluate({
+      projectRoot: root,
+      previewUrl: 'http://127.0.0.1:41032/',
+      profile: 'wisdom',
+      initialDelayMs: 0,
+      keyHoldMs: 0,
+      actionDelayMs: 0,
+      settleDelayMs: 0,
+    });
+
+    const check = report.checks.find((item) => item.id === 'success-gated');
+    expect(check?.status).toBe('repair');
+    expect(check?.message).toContain('闯关完成');
+  });
+});
+
+function wisdomManifest(): Record<string, unknown> {
+  const key = (code: string) => ({ type: 'key', code, holdMs: 0 });
+  return {
+    schemaVersion: 1,
+    updatedAt: '2026-08-30T07:00:00.000Z',
+    engine: 'web',
+    entrypoint: { path: 'dist/index.html', readyTimeoutMs: 1_000 },
+    actions: {
+      start: { inputs: [key('Enter')] },
+      move: { inputs: [key('KeyD')] },
+      primary: { inputs: [key('Space')] },
+      mistake: { inputs: [key('KeyX')] },
+      pause: { inputs: [key('Escape')] },
+      restart: { inputs: [key('KeyR')] },
+    },
+    levels: { count: 3 },
+    journey: [
+      {
+        id: 'launch-ready',
+        action: 'launch',
+        inputs: [],
+        observe: [{ kind: 'canvas-not-blank', description: 'ready' }],
+        capture: 'launch.png',
+      },
+      {
+        id: 'start-game',
+        action: 'start',
+        inputs: [],
+        observe: [
+          { kind: 'screen-change', description: 'start', baselineStepId: 'launch-ready' },
+          { kind: 'text-visible', description: 'level 1', value: '第1关' },
+        ],
+        capture: 'start.png',
+      },
+      {
+        id: 'move-player',
+        action: 'move',
+        inputs: [],
+        observe: [{ kind: 'screen-change', description: 'move', baselineStepId: 'start-game' }],
+        capture: 'move.png',
+      },
+      {
+        id: 'primary-action',
+        action: 'primary',
+        inputs: [],
+        observe: [
+          { kind: 'screen-change', description: 'primary', baselineStepId: 'move-player' },
+          { kind: 'text-visible', description: 'level 2', value: '第2关' },
+        ],
+        capture: 'primary.png',
+      },
+      {
+        id: 'mistake-action',
+        action: 'mistake',
+        inputs: [],
+        observe: [
+          { kind: 'screen-change', description: 'mistake', baselineStepId: 'primary-action' },
+          { kind: 'text-visible', description: 'mistake feedback', value: '再试一次' },
+        ],
+        capture: 'mistake.png',
+      },
+      {
+        id: 'level-three',
+        action: 'primary',
+        inputs: [],
+        observe: [
+          { kind: 'screen-change', description: 'level 3', baselineStepId: 'mistake-action' },
+          { kind: 'text-visible', description: 'level 3 label', value: '第3关' },
+        ],
+        capture: 'level-three.png',
+      },
+      {
+        id: 'pause-game',
+        action: 'pause',
+        inputs: [],
+        observe: [{ kind: 'text-visible', description: 'pause', value: '暂停' }],
+        capture: 'pause.png',
+      },
+      {
+        id: 'resume-game',
+        action: 'pause',
+        inputs: [],
+        observe: [{ kind: 'screen-change', description: 'resume', baselineStepId: 'pause-game' }],
+        capture: 'resume.png',
+      },
+      {
+        id: 'restart-game',
+        action: 'restart',
+        inputs: [],
+        observe: [{ kind: 'screen-change', description: 'restart', baselineStepId: 'resume-game' }],
+        capture: 'restart.png',
+      },
+    ],
+    success: [{ kind: 'text-visible', description: 'terminal', value: '闯关完成' }],
+    limits: { maxRunMs: 5_000, stepTimeoutMs: 1_000 },
+  };
+}
+
 class MockWebContents extends EventEmitter implements GameplayWebContents {
   readonly inputs: Array<Record<string, unknown>> = [];
   readonly timeline: string[] = [];
@@ -797,6 +964,8 @@ class MockWebContents extends EventEmitter implements GameplayWebContents {
   captureCount = 0;
   muted = false;
   surfaceFailuresRemaining = 0;
+  textVisibility?: (text: string) => boolean;
+  elementVisibility?: (selector: string) => boolean;
   readonly session = new MockSession();
 
   constructor(frame: (index: number) => GameplayCapturedImage) {
@@ -814,7 +983,18 @@ class MockWebContents extends EventEmitter implements GameplayWebContents {
       }
       return SURFACE as T;
     }
-    if (code.includes('document.createTreeWalker') || code.includes('document.querySelector')) return true as T;
+    if (code.includes('document.createTreeWalker')) {
+      if (!this.textVisibility) return true as T;
+      const match = /const expected = ("(?:[^"\\]|\\.)*");/su.exec(code);
+      const expected = match ? JSON.parse(match[1]) as string : '';
+      return this.textVisibility(expected) as T;
+    }
+    if (code.includes('document.querySelector')) {
+      if (!this.elementVisibility) return true as T;
+      const match = /document\.querySelector\(("(?:[^"\\]|\\.)*")\)/su.exec(code);
+      const selector = match ? JSON.parse(match[1]) as string : '';
+      return this.elementVisibility(selector) as T;
+    }
     return SURFACE as T;
   }
 
@@ -1008,6 +1188,9 @@ async function seedLatestEvidence(root: string, marker: string): Promise<void> {
       { id: 'input-response', label: '操作反馈', status: 'pass', message: 'ok' },
       { id: 'continuous-render', label: '持续渲染与动画', status: 'pass', message: 'ok' },
       { id: 'restart', label: '重新开始', status: 'pass', message: 'ok' },
+      { id: 'success-gated', label: '通关条件延迟', status: 'pass', message: 'ok' },
+      { id: 'failure-path', label: '错误路径', status: 'pass', message: 'ok' },
+      { id: 'level-progression', label: '关卡递进', status: 'pass', message: 'ok' },
     ],
   };
   await writeFile(join(latest, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);

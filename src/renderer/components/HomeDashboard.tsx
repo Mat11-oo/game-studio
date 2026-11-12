@@ -1,26 +1,19 @@
+import moonCover from '../assets/workshop/moon.svg';
+import rescueCover from '../assets/workshop/rescue.svg';
 import {
-  ArrowUp,
   ArrowRight,
-  Bot,
-  FileText,
   Gamepad2,
-  ImagePlus,
   Menu,
   Moon,
-  Paperclip,
   Settings,
   Sparkles,
-  Square,
   Sun,
-  X,
 } from 'lucide-react';
 import {
   useEffect,
   useMemo,
   useRef,
   useState,
-  type DragEvent,
-  type KeyboardEvent,
 } from 'react';
 
 import type {
@@ -32,45 +25,19 @@ import type {
 import { formatRelative, PROJECT_STATUS_LABELS } from '../ui';
 import { ModelPicker } from './ModelPicker';
 import { ProjectIconImage } from './ProjectIcon';
-import { RotatingIdeaInput } from './RotatingIdeaInput';
+
+import { KNOWLEDGE_RULES, type KnowledgeTopic, type WorkshopProposal } from '../../shared/knowledgeWorkshop';
 
 const IDEA_STARTERS = [
-  {
-    label: '平台动作',
-    prompt: '制作一个横版平台动作游戏，拥有流畅移动、冲刺、收集目标和可立即重玩的完整关卡。',
-  },
-  {
-    label: '射击',
-    prompt: '制作一个俯视角生存射击游戏，包含武器切换、敌人波次、受击反馈和完整胜负循环。',
-  },
-  {
-    label: '竞速',
-    prompt: '制作一个有漂移、计时、检查点和对手车辆的街机竞速游戏。',
-  },
-  {
-    label: 'RPG',
-    prompt: '制作一个小型动作 RPG，包含探索、战斗、装备成长、任务目标和 Boss 战。',
-  },
-  {
-    label: '卡牌',
-    prompt: '制作一个卡牌策略游戏，卡牌拥有独立素材、出牌动效、回合反馈和可完成的一局。',
-  },
-  {
-    label: '3D 冒险',
-    prompt: '制作一个第三人称 3D 冒险游戏，包含移动、镜头、交互、敌人和完整目标。',
-  },
+  { label: '太空种植', subject: '数学 · 长方形面积', cover: moonCover, topic: 'area', prompt: '经营月球温室：为 3 个种植任务判断长和宽，提交前不显示面积答案，面积不达标会占用额外空间。' },
+  { label: '山路救援', subject: '科学 · 平均速率', cover: rescueCover, topic: 'speed', prompt: '驾驶救援车闯 3 关：在时间预算内判断路线与用时，提交前不显示平均速率，答错会加时。' },
 ] as const;
-
-const IMAGE_ACCEPT = '.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp';
-const FILE_ACCEPT = '.pdf,.md,.txt,.json,.csv,.wav,.mp3,.ogg,.glb';
-const SUPPORTED_ATTACHMENT = /\.(?:png|jpe?g|webp|pdf|md|txt|json|csv|wav|mp3|ogg|glb)$/iu;
-const MAX_HOME_ATTACHMENTS = 20;
 
 export interface HomeLaunchInput {
   idea: string;
   model: string | null;
   effort: string | null;
-  attachments: readonly File[];
+  proposal: WorkshopProposal;
 }
 
 interface HomeDashboardProps {
@@ -103,13 +70,11 @@ export function HomeDashboard({
   onToggleTheme,
 }: HomeDashboardProps) {
   const [idea, setIdea] = useState('');
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const [attachmentNotice, setAttachmentNotice] = useState('');
-  const [dragActive, setDragActive] = useState(false);
+  const [grade, setGrade] = useState(5);
+  const [audience, setAudience] = useState<WorkshopProposal['audience']>('self');
+  const [topic, setTopic] = useState<KnowledgeTopic>('open');
+  const [plan, setPlan] = useState<string | null>(null);
   const ideaInputRef = useRef<HTMLTextAreaElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragDepth = useRef(0);
   const [model, setModel] = useState(
     settings.defaultModel ?? models.find((item) => item.isDefault)?.model ?? models[0]?.model ?? '',
   );
@@ -118,7 +83,6 @@ export function HomeDashboard({
     () => models.find((item) => item.model === model) ?? models[0] ?? null,
     [model, models],
   );
-  const accountName = accountDisplayName(runtime);
   const runtimeReady = runtime.state === 'ready' && Boolean(runtime.account);
   const launchReady = runtimeReady && imageGenerationAvailable && idea.trim().length > 0 && !busy;
 
@@ -150,72 +114,21 @@ export function HomeDashboard({
   }, [activeModel, effort, settings.defaultEffort]);
 
   async function submit() {
-    if (!launchReady) return;
+    if (plan === null) {
+      if (idea.trim()) setPlan(`游戏创意：${idea.trim()}\n知识目标：${topic === 'open' ? '按创意确定（知识内容未经核验）' : KNOWLEDGE_RULES[topic].title}\n闯关设计：至少 3 个难度递进的关卡，每关由玩家先判断再提交；答错有代价且可纠正，通关有星级与最佳记录。`);
+      return;
+    }
+    if (!launchReady || !plan.trim()) return;
     await onLaunch({
       idea: idea.trim(),
       model: activeModel?.model ?? null,
       effort: effort || null,
-      attachments,
+      proposal: { grade, audience, topic, plan: plan.trim() },
     });
   }
 
-  function addAttachments(files: readonly File[]) {
-    if (busy || files.length === 0) return;
-    const supported = files.filter((file) => SUPPORTED_ATTACHMENT.test(file.name));
-    const unsupportedCount = files.length - supported.length;
-    const known = new Set(attachments.map(attachmentKey));
-    const added: File[] = [];
-    for (const file of supported) {
-      if (attachments.length + added.length >= MAX_HOME_ATTACHMENTS) break;
-      const key = attachmentKey(file);
-      if (known.has(key)) continue;
-      known.add(key);
-      added.push(file);
-    }
-    if (added.length > 0) setAttachments((current) => [...current, ...added]);
-    const messages = [
-      added.length > 0 ? `已添加 ${added.length} 个附件` : '',
-      unsupportedCount > 0 ? `忽略 ${unsupportedCount} 个不支持的文件` : '',
-      attachments.length + supported.length > MAX_HOME_ATTACHMENTS ? `最多 ${MAX_HOME_ATTACHMENTS} 个` : '',
-    ].filter(Boolean);
-    setAttachmentNotice(messages.join('；'));
-  }
-
-  function removeAttachment(file: File) {
-    const key = attachmentKey(file);
-    setAttachments((current) => current.filter((item) => attachmentKey(item) !== key));
-    setAttachmentNotice('');
-  }
-
-  function handleDragEnter(event: DragEvent<HTMLDivElement>) {
-    if (!event.dataTransfer.types.includes('Files')) return;
-    event.preventDefault();
-    dragDepth.current += 1;
-    setDragActive(true);
-  }
-
-  function handleDragLeave(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    dragDepth.current = Math.max(0, dragDepth.current - 1);
-    if (dragDepth.current === 0) setDragActive(false);
-  }
-
-  function handleDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    dragDepth.current = 0;
-    setDragActive(false);
-    addAttachments(Array.from(event.dataTransfer.files));
-  }
-
-  function handlePromptKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter' && launchReady) {
-      event.preventDefault();
-      void submit();
-    }
-  }
-
   return (
-    <section className="home-dashboard">
+    <section className="home-dashboard workshop-home">
       <header className="home-toolbar">
         <button
           className="home-mobile-menu"
@@ -238,85 +151,40 @@ export function HomeDashboard({
       <div className="home-scroll">
         <section className="home-hero" aria-labelledby="home-title">
           <div className="home-hero-content">
-            <span className={`home-loop-status ${runtimeReady ? 'is-ready' : 'is-attention'}`}>
-              <i /> {runtimeReady ? 'LOOP MODE 已就绪' : '完成运行时设置后开始'} <ArrowRight size={13} />
-            </span>
-            <h1 id="home-title">今天想做什么游戏，{accountName}？</h1>
-            <p>描述玩法、美术和你最在意的体验。Noobi 会持续制作、试玩、评测和修复，直到得到可交付成品。</p>
-
-            <div
-              className={`home-prompt-card${dragActive ? ' is-dragging' : ''}`}
-              onDragEnter={handleDragEnter}
-              onDragOver={(event) => {
-                if (!event.dataTransfer.types.includes('Files')) return;
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'copy';
-              }}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <input
-                ref={imageInputRef}
-                className="sr-only"
-                type="file"
-                accept={IMAGE_ACCEPT}
-                multiple
-                tabIndex={-1}
-                onChange={(event) => {
-                  addAttachments(Array.from(event.target.files ?? []));
-                  event.target.value = '';
-                }}
-              />
-              <input
-                ref={fileInputRef}
-                className="sr-only"
-                type="file"
-                accept={FILE_ACCEPT}
-                multiple
-                tabIndex={-1}
-                onChange={(event) => {
-                  addAttachments(Array.from(event.target.files ?? []));
-                  event.target.value = '';
-                }}
-              />
-              <RotatingIdeaInput
-                ref={ideaInputRef}
-                value={idea}
-                busy={busy}
-                onChange={(event) => setIdea(event.target.value)}
-                onKeyDown={handlePromptKeyDown}
-              />
-              {attachments.length > 0 ? (
-                <div className="home-attachment-list" aria-label="已添加的参考附件">
-                  {attachments.map((file) => (
-                    <div className="home-attachment" key={attachmentKey(file)}>
-                      <AttachmentPreview file={file} />
-                      <span>
-                        <strong title={file.name}>{file.name}</strong>
-                        <small>{formatFileSize(file.size)}</small>
-                      </span>
-                      <button
-                        type="button"
-                        aria-label={`移除 ${file.name}`}
-                        disabled={busy}
-                        onClick={() => removeAttachment(file)}
-                      >
-                        <X size={13} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              {attachmentNotice ? <div className="home-attachment-notice" role="status">{attachmentNotice}</div> : null}
+            <div className="workshop-banner">
+              <span className={`home-loop-status ${runtimeReady ? 'is-ready' : 'is-attention'}`}>
+                <i /> {runtimeReady ? '制作已就绪' : '可先编辑创意与提案'} <ArrowRight size={13} />
+              </span>
+              <h1 id="home-title">知识冒险工坊</h1>
+              <p>描述想学的知识和想玩的关卡。先修改并确认提案，再制作至少 3 关的智慧闯关游戏。</p>
+            </div>
+            <div className="home-prompt-card workshop-creator">
+              <ol className="workshop-steps" aria-label="制作步骤">
+                <li aria-current={plan === null ? 'step' : undefined}><b>01</b> 写创意</li>
+                <li aria-current={plan !== null ? 'step' : undefined}><b>02</b> 看提案</li>
+                <li><b>03</b> 制作游戏</li>
+              </ol>
+              <div className="workshop-options">
+                <label>创作方式 <select value={audience} disabled={busy || plan !== null} onChange={(event) => setAudience(event.target.value as WorkshopProposal['audience'])}>
+                  <option value="self">学生自创自玩</option><option value="student">老师或家长为学生创作</option>
+                </select></label>
+                <label>目标年级 <select value={grade} disabled={busy || plan !== null} onChange={(event) => setGrade(Number(event.target.value))}>
+                  {[4, 5, 6, 7, 8, 9].map((year) => <option key={year} value={year}>{year} 年级</option>)}
+                </select></label>
+                <label>知识主题 <select value={topic} disabled={busy || plan !== null} onChange={(event) => setTopic(event.target.value as KnowledgeTopic)}>
+                  <option value="open">自定义 · 知识内容未经核验</option>
+                  {Object.entries(KNOWLEDGE_RULES).map(([id, rule]) => <option key={id} value={id}>{rule.title}</option>)}
+                </select></label>
+              </div>
+              {plan === null ? (
+                <textarea ref={ideaInputRef} aria-label="游戏创意" placeholder="例如：在月球温室里调整种植箱的尺寸，学习长方形面积。" value={idea} maxLength={2400} onChange={(event) => setIdea(event.target.value)} />
+              ) : (
+                <label className="workshop-plan">编辑游戏提案
+                  <textarea value={plan} disabled={busy} maxLength={2400} onChange={(event) => setPlan(event.target.value)} />
+                </label>
+              )}
               <div className="home-prompt-controls">
-                <div className="home-attachment-actions">
-                  <button type="button" disabled={busy} onClick={() => imageInputRef.current?.click()}>
-                    <ImagePlus size={15} /> 图片
-                  </button>
-                  <button type="button" disabled={busy} onClick={() => fileInputRef.current?.click()}>
-                    <Paperclip size={15} /> 文件
-                  </button>
-                </div>
+                {plan !== null && <button type="button" disabled={busy} onClick={() => setPlan(null)}>返回创意</button>}
                 <ModelPicker
                   models={models}
                   value={activeModel?.model ?? ''}
@@ -328,39 +196,20 @@ export function HomeDashboard({
                   onEffortChange={setEffort}
                 />
                 <span className="home-prompt-spacer" aria-hidden="true" />
-                <span className="home-engine-advisor" title="Agent 会根据玩法、维度、动画和物理需求自动选择 Web 或 Godot">
-                  <Bot size={15} /> 引擎由 Agent 判断
-                </span>
-                <button
-                  className="home-create-button"
-                  type="button"
-                  aria-label={busy ? '正在创建游戏' : '发送游戏创意'}
-                  disabled={!launchReady}
-                  title={!runtimeReady
-                    ? '请先让 Codex 运行时就绪并完成登录'
-                    : !imageGenerationAvailable
-                      ? '请先配置图像服务或修复 Codex ImageGen'
-                      : idea.trim() ? '创建项目并启动 Agent' : '先描述游戏创意'}
-                  onClick={() => void submit()}
-                >
-                  {busy
-                    ? <Square size={12} fill="currentColor" />
-                    : <ArrowUp size={20} strokeWidth={2.2} />}
+                <button type="button" className="workshop-submit"
+                  disabled={busy || (plan === null ? !idea.trim() : !launchReady || !plan.trim())}
+                  onClick={() => void submit()}>
+                  {busy ? '正在创建…' : plan === null ? '查看提案' : '确认提案并制作'}
                 </button>
               </div>
-              {dragActive ? (
-                <div className="home-attachment-drop" role="status">
-                  <Paperclip size={22} />
-                  <strong>松开即可添加到游戏需求</strong>
-                  <span>支持图片、PDF、文本、音频和 GLB</span>
-                </div>
-              ) : null}
+              {plan !== null && !launchReady && !busy && <p role="status">制作前请在设置中登录并配置图像生成能力。</p>}
             </div>
-
             <div className="home-idea-starters" aria-label="游戏创意快捷选项">
               {IDEA_STARTERS.map((starter) => (
-                <button key={starter.label} type="button" onClick={() => setIdea(starter.prompt)}>
-                  {starter.label}
+                <button key={starter.label} type="button" disabled={busy || plan !== null} onClick={() => { setIdea(starter.prompt); setTopic(starter.topic); }}>
+                  <img src={starter.cover} alt="" width={240} height={100} />
+                  <span><small>{starter.subject}</small><strong>{starter.label}</strong></span>
+                  <ArrowRight aria-hidden="true" size={18} />
                 </button>
               ))}
             </div>
@@ -371,12 +220,13 @@ export function HomeDashboard({
           <header>
             <div>
               <span>YOUR GAMES</span>
-              <h2 id="recent-projects-title">继续最近的制作</h2>
+              <h2 id="recent-projects-title">打开游戏</h2>
             </div>
             <button
               type="button"
               onClick={() => {
                 setIdea('');
+                setPlan(null);
                 ideaInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 ideaInputRef.current?.focus({ preventScroll: true });
               }}
@@ -409,7 +259,7 @@ export function HomeDashboard({
             <div className="home-project-empty">
               <Sparkles size={20} />
               <strong>第一个游戏会出现在这里</strong>
-              <span>从上面的一句话开始，Noobi 会建立完整工程。</span>
+              <span>从上面的一句话开始，确认提案后开始制作。</span>
             </div>
           )}
         </section>
@@ -418,36 +268,3 @@ export function HomeDashboard({
   );
 }
 
-function AttachmentPreview({ file }: { file: File }) {
-  const [url, setUrl] = useState('');
-  const image = /^image\//iu.test(file.type) || /\.(?:png|jpe?g|webp)$/iu.test(file.name);
-
-  useEffect(() => {
-    if (!image) {
-      setUrl('');
-      return undefined;
-    }
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file, image]);
-
-  return url ? <img src={url} alt="" /> : <span><FileText size={15} /></span>;
-}
-
-function attachmentKey(file: File): string {
-  return `${file.name}\u0000${file.size}\u0000${file.lastModified}`;
-}
-
-function formatFileSize(size: number): string {
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${Math.ceil(size / 1024)} KB`;
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function accountDisplayName(runtime: RuntimeStatus): string {
-  const email = runtime.account?.email?.trim();
-  if (!email) return '创作者';
-  const local = email.split('@')[0]?.trim();
-  return local || '创作者';
-}

@@ -1,3 +1,4 @@
+import { readWorkshopProposal } from '../shared/knowledgeWorkshop.js';
 import { constants } from 'node:fs';
 import { lstat, mkdtemp, open, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -42,7 +43,7 @@ Rules:
 - When the file is saved, reply with exactly: ICON_READY`;
 
 function buildIconTurnPrompt(project: ProjectRecord): string {
-  const idea = project.idea.replace(/\s+/gu, ' ').trim().slice(0, 600);
+  const idea = (readWorkshopProposal(project.idea)?.plan ?? project.idea).replace(/\s+/gu, ' ').trim().slice(0, 600);
   return [
     `Game name: <game_name>${project.name}</game_name>`,
     idea ? `Game concept: <game_concept>${idea}</game_concept>` : '',

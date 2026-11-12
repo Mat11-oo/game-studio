@@ -229,7 +229,7 @@ function workspaceFiles(project: WorkspaceProject): Record<string, string> {
   <body>
     <main id="app" aria-label="${safeTitle}">
       <canvas id="game" width="960" height="540"></canvas>
-      <p class="hint">Noobi.ai 中性项目脚手架 · Agent 将根据你的需求替换此画面</p>
+      <p class="hint">游戏工坊中性项目脚手架 · Agent 将根据你的需求替换此画面</p>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>
@@ -241,7 +241,7 @@ function workspaceFiles(project: WorkspaceProject): Record<string, string> {
 }
 
 function projectAgents(project: WorkspaceProject): string {
-  const content = `# Noobi.ai Game Project
+  const content = `# 游戏工坊 Game Project
 
 ## Product goal
 
@@ -281,7 +281,7 @@ ${engineContract(project)}
 
 ## Asset pipeline
 
-- A host-trusted generated image is required for every Noobi.ai game. Follow the current host prompt: call \`noobi_image_generate\` when a configured image API is active and follow its Codex ImageGen fallback instruction otherwise. The accepted result must exist under \`public/assets/images/\`, be registered in the manifest, and be visibly loaded by the running game before the task can complete. Manifest provider text alone is never generation proof.
+- A host-trusted generated image is required for every 游戏工坊 game. Follow the current host prompt: call \`noobi_image_generate\` when a configured image API is active and follow its Codex ImageGen fallback instruction otherwise. The accepted result must exist under \`public/assets/images/\`, be registered in the manifest, and be visibly loaded by the running game before the task can complete. Manifest provider text alone is never generation proof.
 - The single generated-image proof is only a provenance gate. It does not prove core visual coverage. Generate or verify actual art for the player-visible gameplay subjects and register classification metadata with \`noobi_asset_register\`: \`role\` plus \`subjectId\`, or \`role=card-art-atlas\` plus \`atlasColumns\`, \`atlasRows\`, and comma-separated \`subjects\`. Card games must map each cardId to a distinct card-face asset or atlas region; a table background, repeated image, uncropped sheet, or plain default Button does not count.
 - Treat animation generation as a separate three-state decision from the general host-trusted image-generation gate. Use \`generate\` only when the required animation asset is absent or this run changes its states, style, scale, frame geometry, anchor, or view; use \`reuse\` only after verifying existing multi-pose frames, a sprite sheet, or a real rigged-GLB animation clip and its playback code; use \`not-needed\` only when pose/form changes do not benefit the requested result.
 - For 2D/2.5D \`generate\`, call \`noobi_image_generate\` and follow its Codex ImageGen fallback when needed; lock subject design, style, palette, scale, frame dimensions, anchor, and view/camera angle across keyframes or a sprite sheet. For actual 3D, always call \`noobi_model3d_generate\`: the host uses the configured 3D API first and otherwise exports a self-contained Three.js-authored GLB. With \`animation=true\`, use and play a real rigged GLB clip; generated reference art cannot substitute for or prove a 3D clip.
@@ -306,7 +306,7 @@ ${engineContract(project)}
 ## Engineering boundaries
 
 - Stay inside this workspace. Do not read or write credentials, global config, or unrelated directories.
-- Never edit \`.noobi/project.json\`; it is owned by the Noobi.ai host.
+- Never edit \`.noobi/project.json\`; it is owned by the 游戏工坊 host.
 - Never write to \`artifacts/playtest/\`; host-generated reports and captures are immutable evidence.
 - Do not fabricate asset generation, test, or build results.
 - Ask before destructive operations, dependency installation, network access, or opening external applications.
@@ -325,7 +325,7 @@ Use \`.codex/skills/noobi-game-builder/SKILL.md\` for the detailed game-producti
 function gameBuilderSkill(project: WorkspaceProject): string {
   const content = `---
 name: noobi-game-builder
-description: Build, verify, and iterate a playable ${project.engine === 'godot' ? 'Godot 4' : 'browser'} game in a Noobi.ai project.
+description: Build, verify, and iterate a playable ${project.engine === 'godot' ? 'Godot 4' : 'browser'} game in a 游戏工坊 project.
 ---
 
 # Noobi Game Builder
@@ -343,6 +343,7 @@ ${engineContract(project)}
 - Perform an animation needs assessment on every request, including focused iterations. Set presentation to \`2d\`, \`2.5d\`, or \`3d\`, then choose \`generate\`, \`reuse\`, or \`not-needed\`: generate only for a real asset gap or incompatible change, reuse only with verified multi-pose/sprite-sheet or rigged-GLB clip evidence, and not-needed only when transforms, particles, camera motion, or UI transitions truthfully cover the requested feedback without pose/form changes.
 - Inventory core visual subjects separately from the mandatory single-image proof. Record stable subject/card/entity IDs and their exact path or atlas region; backgrounds and decorative art never cover missing interactive entities.
 - Define the shortest complete player-experience journey and keep it executable in \`.noobi/playtest.json\`: launch/start, move, primary action, progress, failure or invalid feedback, pause/resume, terminal result, and restart.
+- When this is a 「智慧闯关」knowledge game, also require at least three escalating levels, a hidden answer before submission, a visible 「第 N 关」HUD label, stars or score with a best record, and a real mistake cost. Add \`actions.mistake\`, a \`mistake\` journey step, and \`levels.count\` to the playtest manifest; every declared level needs a passing \`text-visible\` 「第 N 关」 assertion, and \`success\` needs a terminal \`text-visible\` assertion that is absent from the launch screen.
 - Treat **${project.targetFrameRate} FPS** as the host-selected production target. Locate engine timing, animation timing, current asset target tags, and variant-selection code before planning changes.
 - ${project.engine === 'godot' ? 'Use Godot scenes, InputMap actions, AnimationPlayer/AnimationTree, cameras, and physics directly; do not add Phaser or Three.js to implement the game runtime.' : 'Adopt Phaser 3 only when scenes, input mapping, animation, cameras, or physics justify the dependency.'}
 - Treat a focused change as starting at the earliest stage it affects; do not rebuild unaffected work.
@@ -420,7 +421,7 @@ ${verificationChecklist(project)}
 
 For media-heavy or 3D work, also verify asset load failures, mute/volume behavior, representative low-end performance, GLB materials from more than one camera angle, and that every manifest path resolves from a production build.
 
-Update and inspect \`.noobi/playtest.json\` before handoff. It must use schemaVersion 1, project-relative paths, the five common actions (start, move, primary, pause, restart), bounded key/pointer/look/drag/wait inputs, and only canvas-not-blank, screen-change, text-visible, or element-visible observations. Use look for camera motion and drag for card, inventory, map, aiming, or touch-like gestures. It may not contain executable JavaScript, shell commands, URLs, absolute paths, or secrets. Never write to \`artifacts/playtest/\`; that evidence belongs to the host. If \`artifacts/playtest/latest/report.json\` exists, inspect every declared journey step and referenced screenshot, and reject failures, timeouts, console/runtime errors, blank or missing captures, stale entrypoints, and implausibly unchanged before/after frames. If it does not exist yet, report host playtest as pending rather than inventing a pass.
+Update and inspect \`.noobi/playtest.json\` before handoff. It must use schemaVersion 1, project-relative paths, the five common actions (start, move, primary, pause, restart), bounded key/pointer/look/drag/wait inputs, and only canvas-not-blank, screen-change, text-visible, or element-visible observations. For a 「智慧闯关」knowledge game also declare \`actions.mistake\` and \`levels.count\` ≥ 3, add a mistake step with visible failure feedback, and prove every 「第 N 关」 label plus a terminal success text that is absent at launch. Use look for camera motion and drag for card, inventory, map, aiming, or touch-like gestures. It may not contain executable JavaScript, shell commands, URLs, absolute paths, or secrets. Never write to \`artifacts/playtest/\`; that evidence belongs to the host. If \`artifacts/playtest/latest/report.json\` exists, inspect every declared journey step and referenced screenshot, and reject failures, timeouts, console/runtime errors, blank or missing captures, stale entrypoints, and implausibly unchanged before/after frames. If it does not exist yet, report host playtest as pending rather than inventing a pass.
 
 Before handing off any game, verify all three generated-image acceptance conditions: the host has a private path/SHA proof from the configured API or Codex ImageGen fallback, the project-relative path resolves in the production build, and the running game visibly uses it. Manifest provider fields alone do not count. If any condition fails, continue fixing or report a blocker instead of claiming completion.
 
@@ -503,7 +504,7 @@ function runInstructions(project: WorkspaceProject): string {
     ].join('\n');
   }
   return [
-    'The starter has no runtime dependency and can be served directly by Noobi.ai. For development tooling:',
+    'The starter has no runtime dependency and can be served directly by 游戏工坊. For development tooling:',
     '',
     '    npm install',
     '    npm run dev',
@@ -512,14 +513,14 @@ function runInstructions(project: WorkspaceProject): string {
     '',
     '    npm run build',
     '',
-    'The production output is written to dist/ and is preferred by the Noobi.ai preview server.',
+    'The production output is written to dist/ and is preferred by the 游戏工坊 preview server.',
   ].join('\n');
 }
 
 function godotProjectConfig(project: WorkspaceProject): string {
   return [
     '; Engine configuration file.',
-    '; Managed starter generated by Noobi.ai. Edit through Godot where practical.',
+    '; Managed starter generated by 游戏工坊. Edit through Godot where practical.',
     'config_version=5',
     '',
     '[application]',
@@ -670,7 +671,7 @@ function godotMainScript(project: WorkspaceProject): string {
     '',
     '    var font := ThemeDB.fallback_font',
     '    draw_string(font, Vector2(0.0, 190.0), "' + title + '", HORIZONTAL_ALIGNMENT_CENTER, ARENA_SIZE.x, 42, Color("f4f5f7"))',
-    '    draw_string(font, Vector2(0.0, 235.0), "NOOBI.AI · NEUTRAL GODOT STARTER", HORIZONTAL_ALIGNMENT_CENTER, ARENA_SIZE.x, 17, Color("aeb5c5"))',
+    '    draw_string(font, Vector2(0.0, 235.0), "GAME WORKSHOP · NEUTRAL GODOT STARTER", HORIZONTAL_ALIGNMENT_CENTER, ARENA_SIZE.x, 17, Color("aeb5c5"))',
     '    draw_string(font, Vector2(0.0, 295.0), "Waiting for the Agent to build gameplay from the brief", HORIZONTAL_ALIGNMENT_CENTER, ARENA_SIZE.x, 20, Color("f4f5f7"))',
     '    draw_string(font, Vector2(0.0, 340.0), "' + brief + '", HORIZONTAL_ALIGNMENT_CENTER, ARENA_SIZE.x, 15, Color("8f98aa"))',
     '    var pulse := 0.55 + sin(elapsed_seconds * 3.0) * 0.2',
@@ -755,7 +756,7 @@ function playtestSpec(project: WorkspaceProject): string {
         id: 'restart-game',
         action: 'restart',
         inputs: [{ type: 'key', code: 'KeyR', holdMs: 60 }],
-        observe: [{ kind: 'screen-change', description: 'Reset returns the neutral starter to its ready state without reloading Noobi.ai.', baselineStepId: 'resume-game' }],
+        observe: [{ kind: 'screen-change', description: 'Reset returns the neutral starter to its ready state without reloading 游戏工坊.', baselineStepId: 'resume-game' }],
         capture: '06-restart-game.png',
       },
     ],
@@ -796,7 +797,7 @@ Turn the brief into one sentence describing what the player gets to feel and do.
 - Start: choose an input appropriate to the requested game.
 - Navigation or movement: define only what the requested interaction model needs.
 - Primary action: expose immediate, visible feedback.
-- Pause and restart: keep both reachable without reloading Noobi.ai.
+- Pause and restart: keep both reachable without reloading 游戏工坊.
 
 ## Target frame rate
 
@@ -827,10 +828,11 @@ ${frameRateImplementation(project)}
 ## Player experience journey
 
 - Contract: Keep the executable route in \`.noobi/playtest.json\` at schemaVersion 1.
+- Wisdom levels (智慧闯关): At least 3 escalating levels; every level has a knowledge-driven decision, a visible 「第 N 关」 label, and a mistake path with a real cost. \`levels.count\` must match the levels the journey proves; \`actions.mistake\` and a \`mistake\` step assert the failure feedback; the terminal success text must not appear at launch.
 - Launch/start: Define the production entrypoint, ready signal, and start input.
 - Core control: Define visible movement/navigation and the primary-action feedback.
 - Loop feedback: Define observable progress plus representative failure or invalid-action feedback.
-- Session controls: Define a visible pause/resume path and restart to a fresh playable state without reloading Noobi.ai.
+- Session controls: Define a visible pause/resume path and restart to a fresh playable state without reloading 游戏工坊.
 - Evidence: Use bounded key/pointer/look/drag/wait inputs and safe visual/DOM observations. Host reports and screenshots appear under \`artifacts/playtest/latest/\`; project code must never fabricate them.
 
 ## Acceptance checks
@@ -869,9 +871,9 @@ ${runInstructions(project)}
 
 ## Production requirements
 
-Every Noobi.ai run includes an animation needs assessment with \`generate\`, \`reuse\`, or \`not-needed\`. Generate new 2D/2.5D keyframes through the configured image API with Codex ImageGen fallback only when existing animation assets are absent or incompatible; otherwise verify and reuse the existing frame set/sprite sheet. Actual rigged 3D characters use real GLB animation clips, with generated images limited to reference or billboard work. A justified not-needed assessment must still ship visible programmatic motion or gameplay feedback. The separate requirement to register and visibly use a qualifying host-generated image remains in force.
+Every 游戏工坊 run includes an animation needs assessment with \`generate\`, \`reuse\`, or \`not-needed\`. Generate new 2D/2.5D keyframes through the configured image API with Codex ImageGen fallback only when existing animation assets are absent or incompatible; otherwise verify and reuse the existing frame set/sprite sheet. Actual rigged 3D characters use real GLB animation clips, with generated images limited to reference or billboard work. A justified not-needed assessment must still ship visible programmatic motion or gameplay feedback. The separate requirement to register and visibly use a qualifying host-generated image remains in force.
 
-The project keeps an executable experience route in \`.noobi/playtest.json\`. It maps start, move, primary action, pause, and restart to bounded inputs, then defines observable steps for a full playable loop. Noobi.ai owns the resulting \`artifacts/playtest/latest/report.json\` and screenshots; game code must never fabricate that evidence.
+The project keeps an executable experience route in \`.noobi/playtest.json\`. It maps start, move, primary action, pause, and restart to bounded inputs, then defines observable steps for a full playable loop. 游戏工坊 owns the resulting \`artifacts/playtest/latest/report.json\` and screenshots; game code must never fabricate that evidence.
 
 This project targets **${project.targetFrameRate} FPS**. Simulation and animation playback use deterministic elapsed-time/fixed-step timing, while actual presentation remains limited by the display. Animation assets carry target/source FPS and duration metadata and production code selects the matching variant. The target does not require ${project.targetFrameRate} unique bitmap images per second; intentional lower-rate keyframes may use timed holds or interpolation. Changing the target requires an audit and replacement/reselection of stale timing and animation variants.
 `;
@@ -950,7 +952,7 @@ function draw() {
   context.fillText(title, canvas.width / 2, 185);
   context.fillStyle = '#aeb5c5';
   context.font = '17px system-ui, sans-serif';
-  context.fillText('NOOBI.AI · NEUTRAL PROJECT STARTER', canvas.width / 2, 225);
+  context.fillText('GAME WORKSHOP · NEUTRAL PROJECT STARTER', canvas.width / 2, 225);
   context.fillStyle = '#f4f5f7';
   context.font = '20px system-ui, sans-serif';
   context.fillText('等待 Agent 根据项目需求构建实际玩法', canvas.width / 2, 280);
@@ -1094,13 +1096,13 @@ function managedRuntimePolicy(targetFrameRate: ProjectRecord['targetFrameRate'])
 - Current host-selected target: **${targetFrameRate} FPS**.
 - The host-owned \`.noobi/project.json\` field \`targetFrameRate=${targetFrameRate}\` is authoritative for this run.
 - This managed block overrides any lower, potentially stale text about a different concrete FPS, host media routing or availability, required music, or permitted audio fallbacks. Keep the lower project instructions, but apply their timing and asset-variant rules using ${targetFrameRate} FPS and apply this block's media acceptance gate.
-- Agents must not edit \`.noobi/project.json\` or this managed block; Noobi.ai refreshes both before each Harness run.
+- Agents must not edit \`.noobi/project.json\` or this managed block; 游戏工坊 refreshes both before each Harness run.
 
 ### Core visual coverage
 
 - The required host-generated image is a provenance minimum, not proof that gameplay entities have art. Inventory stable player-visible subject/card/entity IDs and bind each to a real asset or addressable atlas region. Background, logo, splash, decorative frame, repeated art, uncropped atlas, and plain default controls do not cover missing gameplay subjects.
 - Register classification through \`noobi_asset_register\`: separate images use \`role\` and stable \`subjectId\`; card atlases use \`role=card-art-atlas\`, \`atlasColumns\`, \`atlasRows\`, and comma-separated \`subjects\`. Classification is not provider proof; the host still verifies generated-image provenance privately.
-- Card/deck/board games must show distinct card or piece art in the running game. Noobi.ai applies a deterministic card-art coverage gate after Agent review and blocks completion when only a background is present or the registered art is not referenced by production code.
+- Card/deck/board games must show distinct card or piece art in the running game. 游戏工坊 applies a deterministic card-art coverage gate after Agent review and blocks completion when only a background is present or the registered art is not referenced by production code.
 
 ### Interaction-motion acceptance
 
@@ -1109,7 +1111,8 @@ function managedRuntimePolicy(targetFrameRate: ProjectRecord['targetFrameRate'])
 
 ### Experience playtest acceptance
 
-- Maintain \`.noobi/playtest.json\` at schemaVersion 1 as the executable shortest player journey. It must map real production inputs for start, move, primary, pause, and restart, then cover progress, representative failure or invalid feedback, a terminal state, and restart to a fresh playable state.
+- Maintain \`.noobi/playtest.json\` at schemaVersion 1 as the executable shortest player journey. It must map real production inputs for start, move, primary, pause, and restart (add mistake when the game can fail), then cover progress, representative failure or invalid feedback, a terminal state, and restart to a fresh playable state.
+- 「智慧闯关」knowledge games must declare \`levels.count\` ≥ 3, prove each 「第 N 关」 label with a passing \`text-visible\` observation, and include a \`mistake\` step whose \`text-visible\`/\`screen-change\` assertions show the cost of a wrong answer. Terminal success text must not be visible at launch.
 - Use only bounded key, pointer, look, drag, and wait inputs; safe canvas-not-blank, screen-change, text-visible, and element-visible observations; and project-relative entrypoint/evidence paths. Use look for camera motion and drag for card, inventory, map, aiming, or touch-like gestures. Never place executable JavaScript, shell commands, URLs, absolute paths, or secrets in this contract.
 - \`artifacts/playtest/\` is host-owned immutable evidence. Agents must not create or edit its report or captures. When a report exists, inspect its per-step status, console/runtime errors, timings, and referenced screenshots; failed, stale, blank, missing, or implausibly unchanged evidence requires repair. If artifacts are absent before the host gate runs, describe the host playtest as pending rather than fabricating a pass.
 

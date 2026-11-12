@@ -806,7 +806,7 @@ function validatedProjectIcon(value: unknown, projectId: string): ProjectIcon {
   if (path !== '.noobi/icon.png') {
     throw new Error(`Project ${projectId} has an unexpected icon path`);
   }
-  if (value.source !== 'procedural' && value.source !== 'ai') {
+  if (value.source !== 'procedural' && value.source !== 'themed' && value.source !== 'ai') {
     throw new Error(`Project ${projectId} has an invalid icon source`);
   }
   if (!isIsoDate(value.updatedAt)) throw new Error(`Project ${projectId} has an invalid icon timestamp`);

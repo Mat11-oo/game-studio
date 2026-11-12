@@ -8,6 +8,7 @@ import {
   encodePngRgba,
   generateAiProjectIcon,
   generateProceduralProjectIcon,
+  renderThemedProjectIcon,
   readProjectIconBytes,
   PROJECT_ICON_GRID_SIZE,
   PROJECT_ICON_RELATIVE_PATH,
@@ -109,10 +110,21 @@ describe('renderProceduralIconPixels', () => {
 });
 
 describe('generateProceduralProjectIcon', () => {
+  it('uses the confirmed proposal to draw distinct, stable game icons', async () => {
+    const project = await fakeProject();
+    const proposal = (plan: string) => `知识冒险工坊 V1\n${JSON.stringify({
+      grade: 5, audience: 'self', topic: 'open', plan,
+    })}`;
+    const rescue = { ...project, idea: proposal('驾驶救援车') };
+    const garden = { ...project, idea: proposal('照顾月球温室') };
+    expect(renderThemedProjectIcon(rescue)).toEqual(renderThemedProjectIcon(rescue));
+    expect(renderThemedProjectIcon(rescue)).not.toEqual(renderThemedProjectIcon(garden));
+  });
+
   it('writes a PNG icon inside the project and reports the record', async () => {
     const project = await fakeProject();
     const icon = await generateProceduralProjectIcon(project);
-    expect(icon.source).toBe('procedural');
+    expect(icon.source).toBe('themed');
     expect(icon.path).toBe(PROJECT_ICON_RELATIVE_PATH);
     const bytes = await readFile(join(project.root, PROJECT_ICON_RELATIVE_PATH));
     expect(bytes.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');

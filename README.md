@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/images/noobi-app-icon.png" width="112" alt="Noobi.ai app icon">
+  <img src="docs/images/noobi-app-icon.png" width="112" alt="游戏工坊 app icon">
 </p>
 
-<h1 align="center">Noobi.ai</h1>
+<h1 align="center">游戏工坊</h1>
 
 <p align="center">
   <strong>Turn one game idea into a reviewed, playable Web or Godot game.</strong><br>
@@ -18,19 +18,22 @@
 </p>
 
 <p align="center">
+  <a href="https://innate-labs.github.io/Noobi.ai/"><strong>Live demo</strong></a> ·
   <a href="#quick-start"><strong>Run from source</strong></a> ·
   <a href="#fork-and-customize"><strong>Fork &amp; customize</strong></a> ·
   <a href="docs/ARCHITECTURE.md"><strong>Architecture</strong></a> ·
   <a href="README.zh-CN.md"><strong>简体中文</strong></a>
 </p>
 
-![Noobi.ai production workbench showing the agent pipeline, playable preview, assets and project files](docs/images/noobi-workbench.png)
+![游戏工坊 production workbench showing the agent pipeline, playable preview, assets and project files](docs/images/noobi-workbench.png)
 
-Noobi.ai gives Codex a bounded game-production loop instead of asking one agent to improvise everything in a single pass. A read-only Planner scopes the work, an Implementer builds inside an isolated project directory, an independent Reviewer checks the result, and the host builds and plays the production output before completion. Failed review, build or playtest checks return to the same Implementer for up to three repair rounds.
+游戏工坊 gives Codex a bounded game-production loop instead of asking one agent to improvise everything in a single pass. A read-only Planner scopes the work, an Implementer builds inside an isolated project directory, an independent Reviewer checks the result, and the host builds and plays the production output before completion. Failed review, build or playtest checks return to the same Implementer for up to three repair rounds.
+
+> **Web demo:** [innate-labs.github.io/Noobi.ai](https://innate-labs.github.io/Noobi.ai/) runs the real workbench UI with a mocked local backend. Use the desktop app for real Codex runs.
 
 > **Current status:** developer preview for macOS. No signed or notarized binary is published yet; run it from source. The output is a standalone Web or Godot 4 project in your own workspace.
 
-## Why Noobi.ai
+## Why 游戏工坊
 
 | | What you get |
 | --- | --- |
@@ -38,7 +41,7 @@ Noobi.ai gives Codex a bounded game-production loop instead of asking one agent 
 | **Review-gated production loop** | Planner → Implementer → Reviewer → formal build → automated playtest. Failed checks trigger up to three bounded repair rounds. |
 | **Automatic experience evaluation** | A sandboxed hidden browser exercises core controls, captures evidence, and checks visible gameplay, animation continuity and runtime errors. |
 | **Real media pipeline** | Route images, music, speech, sound effects and 3D through configured providers, Codex ImageGen, imported assets or procedural fallbacks. Failed assets remain visible as retryable placeholders. |
-| **A workspace you own** | Every game is a normal local project. Inspect the files, continue with Codex, commit it to Git, or take it outside Noobi.ai. |
+| **A workspace you own** | Every game is a normal local project. Inspect the files, continue with Codex, commit it to Git, or take it outside 游戏工坊. |
 | **Built to extend** | Add media providers, Codex Skills, MCP servers, agent prompts, project templates, Godot export targets, or an entirely different workbench UI. |
 
 ## Quick start
@@ -58,9 +61,9 @@ npm ci
 npm run dev
 ```
 
-On first launch, open **Settings → Codex account** and sign in. Noobi.ai uses an app-private `userData/codex-home`; it does not overwrite your global `~/.codex` configuration.
+On first launch, open **Settings → Codex account** and sign in. 游戏工坊 uses an app-private `userData/codex-home`; it does not overwrite your global `~/.codex` configuration.
 
-If Codex cannot be located automatically, point Noobi.ai at a binary explicitly:
+If Codex cannot be located automatically, point 游戏工坊 at a binary explicitly:
 
 ```bash
 NOOBI_CODEX_BIN=/absolute/path/to/codex npm run dev
@@ -87,11 +90,11 @@ flowchart LR
 
 The workbench visualizes `Brief → Scaffold → GDD → Assets → World → Code → Verify → Complete`. Those stages explain progress; the Reviewer and host proof gate decide whether a run is actually complete.
 
-![Noobi.ai mascot orchestrating code, animation, 3D, audio and playable worlds](docs/images/noobi-game-agent-poster.png)
+![游戏工坊 mascot orchestrating code, animation, 3D, audio and playable worlds](docs/images/noobi-game-agent-poster.png)
 
 ## Fork and customize
 
-Noobi.ai is intentionally organized around replaceable boundaries. A useful fork can start small:
+游戏工坊 is intentionally organized around replaceable boundaries. A useful fork can start small:
 
 | Goal | Start here |
 | --- | --- |

@@ -4,15 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Local-first desktop agent that turns a prompt into a reviewed, playable Web or Godot game with Codex App Server",
-  "author": "Noobi.ai",
-  "homepage": "https://github.com/Innate-Labs/Noobi.ai#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Innate-Labs/Noobi.ai.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Innate-Labs/Noobi.ai/issues"
-  },
+  "author": "游戏工坊",
   "keywords": [
     "codex",
     "codex-app-server",
@@ -36,6 +28,9 @@
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",
     "build": "npm run clean && npm run typecheck && npm run build:renderer && npm run build:main",
+    "dev:demo": "vite --config vite.demo.config.ts",
+    "build:demo": "vite build --config vite.demo.config.ts",
+    "build:pages": "npm run build:demo && node scripts/build-pages.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "protocol:generate": "tsx scripts/generate-codex-protocol.ts",
@@ -53,7 +48,10 @@
     "package:mac": "npm run build && electron-builder --mac dmg --publish never"
   },
   "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource/alfa-slab-one": "^5.3.0",
     "@fontsource/press-start-2p": "^5.3.0",
+    "@fontsource/zcool-kuaile": "^5.3.0",
     "@openai/codex": "0.148.0",
     "@vp-tw/cjk-web-fonts-fusion-pixel-font": "^0.0.1",
     "lucide-react": "^0.468.0",
@@ -81,8 +79,8 @@
     "wait-on": "^8.0.1"
   },
   "build": {
-    "appId": "ai.noobi.desktop",
-    "productName": "Noobi.ai",
+    "appId": "ai.noobi.knowledgeworkshop",
+    "productName": "知识冒险工坊",
     "asar": true,
     "asarUnpack": [
       "node_modules/@openai/codex-*/vendor/**/*"
@@ -100,14 +98,14 @@
     },
     "mac": {
       "category": "public.app-category.developer-tools",
-      "icon": "build/icon.png",
+      "icon": "src/renderer/public/app-icon.png",
       "target": [
         "dmg"
       ]
     },
     "dmg": {
       "backgroundColor": "#11120f",
-      "title": "Noobi.ai ${version}"
+      "title": "知识冒险工坊 ${version}"
     }
   }
 }

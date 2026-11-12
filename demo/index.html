@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#151611" />
+    <meta name="description" content="游戏工坊在线演示：在浏览器中体验知识冒险工坊的制作流程与可玩游戏，无需安装。" />
+    <link rel="icon" type="image/png" href="./app-icon.png" />
+    <title>游戏工坊 · 在线演示 / Web Demo</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+
+    <button class="demo-help" id="demo-help" type="button" aria-label="关于在线演示" title="关于在线演示">?</button>
+
+    <aside class="demo-intro" id="demo-intro" aria-label="在线演示说明">
+      <header>
+        <span class="demo-intro-eyebrow">ONLINE DEMO · 无需安装</span>
+        <button class="demo-intro-close" id="demo-intro-close" type="button" aria-label="关闭演示说明">×</button>
+      </header>
+      <h2>这是浏览器里的工坊演示</h2>
+      <p>
+        界面、制作流程与游戏都是真实的；<strong>Agent、Codex 账户、文件写入与试玩结果均为模拟</strong>。
+        你可以打开示例《月光温室》直接游玩，也可以新建一个创意，看一轮完整的制作流程。
+      </p>
+      <ul>
+        <li><b>01</b> 打开「月光温室」，试玩三关面积闯关</li>
+        <li><b>02</b> 点「打开制作台」，查看制作事件与工程文件</li>
+        <li><b>03</b> 回到首页写一个创意，确认提案后自动演示制作</li>
+      </ul>
+      <footer>
+        <a class="demo-intro-primary" href="../">返回项目主页</a>
+        <a href="https://github.com/Innate-Labs/Noobi.ai" target="_blank" rel="noreferrer">GitHub 仓库</a>
+      </footer>
+    </aside>
+
+    <script>
+      (() => {
+        const intro = document.getElementById('demo-intro');
+        const help = document.getElementById('demo-help');
+        const close = document.getElementById('demo-intro-close');
+        if (!intro || !help || !close) return;
+        const key = 'noobi-demo-intro-dismissed';
+        const hide = () => {
+          intro.classList.add('is-hidden');
+          try { sessionStorage.setItem(key, '1'); } catch (_) {}
+        };
+        try {
+          if (sessionStorage.getItem(key) === '1') intro.classList.add('is-hidden');
+        } catch (_) {}
+        close.addEventListener('click', hide);
+        help.addEventListener('click', () => intro.classList.toggle('is-hidden'));
+      })();
+    </script>
+  </body>
+</html>

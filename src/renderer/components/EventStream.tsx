@@ -1,3 +1,4 @@
+import { readWorkshopProposal } from '../../shared/knowledgeWorkshop';
 import {
   AlertTriangle,
   Bot,
@@ -50,7 +51,7 @@ export function EventStream({ project, events }: EventStreamProps) {
       <article className="brief-card">
         <span className="eyebrow">01 / CREATIVE BRIEF</span>
         <h2>{project.name}</h2>
-        <p>{project.idea}</p>
+        <p>{readWorkshopProposal(project.idea)?.plan ?? project.idea}</p>
         <footer>
           <span>{project.root}</span>
           <time dateTime={project.createdAt}>
@@ -66,7 +67,7 @@ export function EventStream({ project, events }: EventStreamProps) {
           <p>
             {project.status === 'draft'
               ? '启动后，这里会持续展示计划、工具调用、文件变化和验证结果。'
-              : '在下方输入修改要求，Noobi 会在同一 Codex 线程中继续。'}
+              : '在下方输入修改要求，工坊 会在同一 Codex 线程中继续。'}
           </p>
         </div>
       ) : null}

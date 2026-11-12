@@ -6060,7 +6060,7 @@ a {
 }
 
 .loading-brand strong {
-  font: 400 20px/1.25 var(--pixel);
+  font: 400 20px/1.25 var(--pixel-cjk);
   letter-spacing: 0.02em;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: none;
@@ -6069,7 +6069,7 @@ a {
 .loading-brand small {
   margin-top: 9px;
   color: var(--faint);
-  font: 400 9px/1.25 var(--pixel);
+  font: 400 12px/1.25 var(--pixel-cjk);
   letter-spacing: 0.04em;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: none;
@@ -6497,26 +6497,6 @@ a {
 .view-home .workspace,
 .view-workbench .workspace {
   background: var(--studio-bg);
-}
-
-.app-shell.view-home {
-  background-color: #e8f3ff;
-  background-image:
-    linear-gradient(180deg, rgba(247, 251, 255, 0.03) 0%, rgba(247, 251, 255, 0.12) 42%, rgba(249, 251, 255, 0.58) 100%),
-    radial-gradient(ellipse at 50% 38%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.04) 58%, transparent 78%),
-    url('../../docs/images/noobi-snow-mountain-hero.png');
-  background-position: center, center, center 46%;
-  background-repeat: no-repeat;
-  background-size: cover, cover, cover;
-  image-rendering: pixelated;
-}
-
-:root[data-theme='dark'] .app-shell.view-home {
-  background-color: #15213a;
-  background-image:
-    linear-gradient(180deg, rgba(12, 20, 38, 0.38), rgba(12, 18, 32, 0.76)),
-    radial-gradient(ellipse at 50% 38%, rgba(31, 45, 72, 0.06), rgba(12, 18, 32, 0.58) 78%),
-    url('../../docs/images/noobi-snow-mountain-hero.png');
 }
 
 .view-home .workspace {
@@ -10332,18 +10312,11 @@ a {
   image-rendering: pixelated;
 }
 
-.launch-transition-runner img:last-child {
-  opacity: 0;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .launch-transition-runner {
-    animation: launch-duck-run 1.55s cubic-bezier(0.35, 0, 0.3, 1) infinite;
+    animation: workshop-icon-run 1.55s cubic-bezier(0.35, 0, 0.3, 1) infinite;
   }
 
-  .launch-transition-runner img:last-child {
-    animation: launch-duck-step 220ms steps(1, end) infinite;
-  }
 }
 
 /* --------------------------------------------------------------------------
@@ -10620,7 +10593,7 @@ a {
   }
 }
 
-@keyframes launch-duck-run {
+@keyframes workshop-icon-run {
   0% { transform: translateX(-110px) translateY(0); }
   48% { transform: translateX(min(270px, 35vw)) translateY(-3px); }
   100% { transform: translateX(min(560px, 76vw)) translateY(0); }
@@ -10830,4 +10803,1461 @@ a {
     animation: none !important;
     transition: none !important;
   }
+}
+
+.workshop-creator,
+.workshop-player {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.workshop-options,
+.workshop-player form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.workshop-creator textarea,
+.workshop-options select,
+.workshop-player input {
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  padding: 8px;
+}
+
+.workshop-creator textarea {
+  width: 100%;
+  min-height: 108px;
+  resize: vertical;
+}
+
+.workshop-plan {
+  display: grid;
+  gap: 6px;
+}
+
+.workshop-player input {
+  flex: 1;
+  min-width: 160px;
+}
+
+.workshop-player p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.view-workbench .production-layout.workshop-play-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workshop-play-only .production-center,
+.workshop-play-only .pipeline,
+.workshop-play-only .inspector-tabs,
+.workshop-play-only .inspector-toolbar {
+  display: none;
+}
+
+.workshop-submit,
+.workshop-player button,
+.workshop-mode-button {
+  padding: 8px 12px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+}
+
+.workshop-submit:not(:disabled) {
+  background: #213b33;
+  color: #fff;
+}
+
+.workshop-player button:disabled {
+  opacity: 0.55;
+}
+
+/* Workshop field guide */
+.workshop-home {
+  --guide-paper: #faf5e8;
+  --guide-ink: #253b36;
+  --guide-muted: #52675b;
+  --guide-line: #b3b9a2;
+  --guide-accent: #286452;
+  background: var(--guide-paper);
+  color: var(--guide-ink);
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+:root[data-theme="dark"] .workshop-home {
+  --guide-paper: #202d2b;
+  --guide-ink: #f3ebd7;
+  --guide-muted: #c0d0bd;
+  --guide-line: #697c6f;
+  --guide-accent: #90cbb0;
+}
+
+.workshop-home .home-hero { min-height: 0; overflow: visible; }
+.workshop-home .home-hero-content { padding: 8px 22px 32px; gap: 18px; }
+.workshop-banner {
+  width: 100%;
+  min-height: 196px;
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  padding: 26px clamp(20px, 5vw, 50px);
+  border: 2px solid var(--guide-line);
+  background: linear-gradient(90deg, #172f36 5%, #172f36dd 42%, #172f3633),
+    url('./assets/workshop/trail.svg') center 52% / cover;
+  color: #fff8e7;
+  text-align: left;
+}
+.workshop-banner .home-loop-status { color: #e1f5d1; }
+.workshop-home .workshop-banner h1 { margin: 12px 0 0; color: inherit; text-shadow: none; }
+.workshop-banner p { margin: 10px 0 0; max-width: 42em; line-height: 1.6; }
+
+.workshop-home .workshop-creator {
+  margin: 0;
+  padding: clamp(14px, 2vw, 22px);
+  gap: 16px;
+  border: 2px solid var(--guide-line);
+  border-radius: 4px;
+  background: var(--guide-paper);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--guide-line) 50%, transparent);
+  text-align: left;
+}
+
+.workshop-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 0;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--guide-line);
+  color: var(--guide-muted);
+  list-style: none;
+}
+
+.workshop-steps b { margin-right: 4px; font-size: .8em; }
+.workshop-steps [aria-current] { color: var(--guide-accent); font-weight: 700; }
+.workshop-home .workshop-options select,
+.workshop-home .workshop-creator textarea { border-color: var(--guide-line); }
+.workshop-home .workshop-plan textarea { min-height: 150px; }
+.workshop-home .home-prompt-controls { padding: 0; flex-wrap: wrap; }
+
+.workshop-home .home-idea-starters {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 14px;
+  margin: 0;
+}
+
+.workshop-home .home-idea-starters button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: 2px solid var(--guide-line);
+  border-radius: 4px;
+  background: var(--guide-paper);
+  color: var(--guide-ink);
+  text-align: left;
+}
+
+.workshop-home .home-idea-starters button:not(:disabled):hover { border-color: var(--guide-accent); }
+.workshop-home .home-idea-starters img { grid-column: 1 / -1; width: 100%; height: 112px; object-fit: cover; object-position: center 84%; }
+.workshop-home .home-idea-starters span { display: grid; gap: 3px; padding: 10px 14px; }
+.workshop-home .home-idea-starters small { color: var(--guide-muted); }
+.workshop-home .home-idea-starters svg { margin: 0 14px; }
+.workshop-home :is(button, select, textarea):focus-visible { outline: 2px solid var(--guide-accent); outline-offset: 3px; }
+
+.workshop-preview-empty {
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+:where(:root:not([data-skin='storybook'])) .app-shell.view-workbench {
+  --studio-bg: #f4eedf;
+  --studio-surface: #faf5e8;
+  --studio-surface-raised: #eee8d6;
+  --studio-border: #c0c3ab;
+  --studio-text: #253b36;
+  --studio-muted: #52675b;
+  --studio-accent: #286452;
+  --studio-accent-ink: #fff8e7;
+}
+
+:root[data-theme="dark"]:where(:not([data-skin='storybook'])) .app-shell.view-workbench {
+  --studio-bg: #192523;
+  --studio-surface: #202d2b;
+  --studio-surface-raised: #2d3c35;
+  --studio-border: #637467;
+  --studio-text: #f3ebd7;
+  --studio-muted: #c0d0bd;
+  --studio-accent: #90cbb0;
+  --studio-accent-ink: #17382e;
+}
+
+.workshop-canvas-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px;
+  padding: 14px;
+  border: 2px solid var(--studio-border);
+  background: linear-gradient(90deg, #172f36 8%, #172f36eb 55%, #172f3677),
+    url('./assets/workshop/trail.svg') center 58% / cover;
+  color: #fff8e7;
+}
+
+.workshop-canvas-heading img { flex: 0 0 auto; }
+.workshop-canvas-heading small { color: #bee6cd; font-size: 11px; }
+.workshop-canvas-heading h2 { margin: 4px 0; font: 400 20px/1.3 var(--pixel-cjk); }
+.workshop-canvas-heading p { margin: 0; font-size: 12px; }
+
+.view-workbench .workshop-preview-empty {
+  border-color: var(--studio-border);
+  background: var(--studio-surface-raised);
+  color: var(--studio-text);
+}
+
+.view-workbench .workshop-player {
+  margin: 8px 12px 0;
+  border: 2px solid var(--studio-border);
+  border-radius: 4px;
+  background: var(--studio-surface);
+  color: var(--studio-text);
+}
+
+.view-workbench .workshop-player button[type="submit"]:not(:disabled),
+.view-workbench .workshop-mode-button {
+  border-color: var(--studio-accent);
+  background: var(--studio-accent);
+  color: var(--studio-accent-ink);
+}
+
+/* ==========================================================================
+   Skin: "Paper Academy" (A+B hybrid)
+   Pixel-academy skeleton + warm paper surface + ink-green accent.
+   Token-only layer: layout, spacing and components stay untouched.
+   ========================================================================== */
+:root[data-skin='paper'] {
+  color-scheme: dark;
+  --bg: #171812;
+  --panel: #1e1f17;
+  --panel-raised: #26271d;
+  --panel-hover: #2e2f23;
+  --line: #3a3a2a;
+  --line-strong: #5b5a42;
+  --text: #f2ecda;
+  --text-soft: #d6ceb7;
+  --muted: #a9a189;
+  --faint: #948c75;
+  --accent: #9cc6a1;
+  --accent-soft: rgba(156, 198, 161, 0.12);
+  --accent-ink: #102016;
+  --green: #9cc6a1;
+  --green-soft: rgba(156, 198, 161, 0.12);
+  --red: #d98574;
+  --red-soft: rgba(217, 133, 116, 0.12);
+  --blue: #8aa9b8;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --studio-bg: #14150f;
+  --studio-surface: #1e1f17;
+  --studio-surface-raised: #26271d;
+  --studio-border: rgba(242, 236, 218, 0.14);
+  --studio-text: #f2ecda;
+  --studio-muted: #b3ab93;
+  --studio-accent: #d9a441;
+  --studio-accent-ink: #201a0c;
+  --studio-shadow: rgba(0, 0, 0, 0.36);
+  --pixel-ui-ink: #1c2a20;
+  --pixel-ui-deep: #35543e;
+  --pixel-ui-paper: #f6ecd2;
+  --pixel-ui-accent: #2f6b4f;
+  --pixel-ui-teal: #6fa898;
+  --pixel-ui-pattern: rgba(246, 236, 210, 0.05);
+  --glass-surface: rgba(23, 24, 18, 0.52);
+  --glass-surface-strong: rgba(23, 24, 18, 0.7);
+  --glass-border: rgba(242, 236, 218, 0.16);
+  --glass-highlight: rgba(242, 236, 218, 0.14);
+  --glass-chip: rgba(23, 24, 18, 0.42);
+  --glass-chip-hover: rgba(38, 39, 29, 0.58);
+  --glass-control: rgba(242, 236, 218, 0.07);
+  --glass-shadow: 0 24px 60px rgba(0, 0, 0, 0.42), 0 4px 16px rgba(0, 0, 0, 0.24);
+  --pixel-cjk: 'Kaiti SC', 'STKaiti', 'Songti SC', 'Noto Serif SC', serif;
+}
+
+:root[data-skin='paper'][data-theme='light'] {
+  color-scheme: light;
+  --bg: #f1e7d0;
+  --panel: #f8f1df;
+  --panel-raised: #fffaf0;
+  --panel-hover: #e9ddc2;
+  --line: #d8c8a8;
+  --line-strong: #b29b73;
+  --text: #23301f;
+  --text-soft: #3e4a35;
+  --muted: #6b6a53;
+  --faint: #7d775f;
+  --accent: #2f6b4f;
+  --accent-soft: rgba(47, 107, 79, 0.12);
+  --accent-ink: #fffaf0;
+  --green: #3f7350;
+  --green-soft: rgba(63, 115, 80, 0.12);
+  --red: #a84a3a;
+  --red-soft: rgba(168, 74, 58, 0.12);
+  --blue: #3c647a;
+  --shadow: rgba(52, 42, 24, 0.14);
+  --studio-bg: #f4ecd9;
+  --studio-surface: #fffaf0;
+  --studio-surface-raised: #f3e9d3;
+  --studio-border: rgba(41, 46, 32, 0.14);
+  --studio-text: #23301f;
+  --studio-muted: #6b6a53;
+  --studio-accent: #2f6b4f;
+  --studio-accent-ink: #fffaf0;
+  --studio-shadow: rgba(52, 42, 24, 0.16);
+  --pixel-ui-ink: #1c2a20;
+  --pixel-ui-deep: #2f6b4f;
+  --pixel-ui-paper: #fffaf0;
+  --pixel-ui-accent: #b0702a;
+  --pixel-ui-teal: #3f7350;
+  --pixel-ui-pattern: rgba(47, 107, 79, 0.06);
+  --glass-surface: rgba(255, 250, 240, 0.58);
+  --glass-surface-strong: rgba(255, 250, 240, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.68);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --glass-chip: rgba(255, 250, 240, 0.46);
+  --glass-chip-hover: rgba(255, 250, 240, 0.66);
+  --glass-control: rgba(255, 250, 240, 0.42);
+  --glass-shadow: 0 20px 50px rgba(52, 42, 24, 0.16), 0 4px 14px rgba(52, 42, 24, 0.08);
+  --pixel-cjk: 'Kaiti SC', 'STKaiti', 'Songti SC', 'Noto Serif SC', serif;
+}
+
+:root[data-skin='paper'] .app-shell {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 520px at 12% -8%, rgba(255, 250, 240, 0.08), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(96, 76, 44, 0.045) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(96, 76, 44, 0.032) 0 1px, transparent 1px 26px);
+}
+
+:root[data-skin='paper'][data-theme='light'] .app-shell {
+  background-image:
+    radial-gradient(900px 520px at 12% -8%, rgba(255, 255, 255, 0.55), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(96, 76, 44, 0.04) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(96, 76, 44, 0.028) 0 1px, transparent 1px 26px);
+}
+
+/* Soft paper edge instead of the flat dark rule line. */
+:root[data-skin='paper'] .topbar {
+  border-bottom-color: var(--line);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Journal-style long-form copy stays readable; labels keep the pixel skeleton. */
+:root[data-skin='paper'] .brief-card > p,
+:root[data-skin='paper'] .event-card pre,
+:root[data-skin='paper'] .workshop-plan,
+:root[data-skin='paper'] .experience-report .experience-summary {
+  font-family: 'Kaiti SC', 'STKaiti', 'Songti SC', 'Noto Serif SC', serif;
+}
+
+/* Paper Academy: bring the workshop field-guide tokens into the same paper. */
+:root[data-skin='paper'] .workshop-home {
+  --guide-paper: #f3e9d3;
+  --guide-ink: #23301f;
+  --guide-muted: #6b6a53;
+  --guide-line: #cdbb95;
+  --guide-accent: #2f6b4f;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(96, 76, 44, 0.035) 0 1px, transparent 1px 26px);
+}
+
+:root[data-skin='paper'][data-theme='dark'] .workshop-home {
+  --guide-paper: #20211a;
+  --guide-ink: #f2ecda;
+  --guide-muted: #b3ab93;
+  --guide-line: #4a4a36;
+  --guide-accent: #9cc6a1;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(242, 236, 218, 0.03) 0 1px, transparent 1px 26px);
+}
+
+:root[data-skin='paper'] .workshop-banner {
+  border-color: var(--guide-line);
+  background:
+    linear-gradient(90deg, rgba(28, 42, 32, 0.94) 5%, rgba(28, 42, 32, 0.8) 42%, rgba(28, 42, 32, 0.3)),
+    url('./assets/workshop/trail.svg') center 52% / cover;
+  color: #fff8e7;
+}
+
+:root[data-skin='paper'] .workshop-home .workshop-creator,
+:root[data-skin='paper'] .workshop-home .home-idea-starters button,
+:root[data-skin='paper'] .workshop-home .home-project-grid > button {
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--guide-line) 42%, transparent);
+}
+
+/* ==========================================================================
+   Skin: "Storybook" — children's picture-book spread on peach paper.
+   Flat crayon color, 2px black ink, 40–47px radii, zero elevation.
+   Layout stays; only surfaces, type and motion change.
+   ========================================================================== */
+:root[data-skin='storybook'] {
+  color-scheme: light !important;
+  --story-peach: #f6e0db;
+  --story-ink: #000000;
+  --story-snow: #ffffff;
+  --story-orange: #ef724f;
+  --story-magenta: #981082;
+  --story-yellow: #e7db4c;
+  --story-mint: #ace2df;
+  --story-blue: #84bfff;
+  --story-lilac: #e69dff;
+  --story-lime: #6ed311;
+  --story-cobalt: #5196ff;
+
+  --bg: var(--story-peach);
+  --panel: var(--story-snow);
+  --panel-raised: var(--story-snow);
+  --panel-hover: #ffe9e2;
+  --line: var(--story-ink);
+  --line-strong: var(--story-ink);
+  --text: var(--story-ink);
+  --text-soft: #2a1a18;
+  --muted: #3a2622;
+  --faint: #4a332e;
+  --accent: var(--story-orange);
+  --accent-soft: #fbd0c6;
+  --accent-ink: var(--story-ink);
+  --green: #2f7d4a;
+  --green-soft: var(--story-mint);
+  --red: var(--story-magenta);
+  --red-soft: var(--story-lilac);
+  --blue: var(--story-cobalt);
+  --shadow: transparent;
+
+  --sans: 'Manrope Variable', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --mono: 'Manrope Variable', ui-monospace, monospace;
+  --pixel: 'Manrope Variable', sans-serif;
+  --pixel-cjk: 'ZCOOL KuaiLe', 'Alfa Slab One', 'Songti SC', serif;
+  --display: 'Alfa Slab One', 'ZCOOL KuaiLe', 'Songti SC', serif;
+
+  --studio-bg: var(--story-peach);
+  --studio-surface: var(--story-snow);
+  --studio-surface-raised: #fff7f3;
+  --studio-border: var(--story-ink);
+  --studio-text: var(--story-ink);
+  --studio-muted: #3a2622;
+  --studio-accent: var(--story-orange);
+  --studio-accent-ink: var(--story-ink);
+  --studio-shadow: transparent;
+
+  --pixel-ui-ink: var(--story-ink);
+  --pixel-ui-deep: var(--story-magenta);
+  --pixel-ui-paper: var(--story-snow);
+  --pixel-ui-accent: var(--story-orange);
+  --pixel-ui-teal: var(--story-mint);
+  --pixel-ui-pattern: transparent;
+
+  --glass-surface: var(--story-snow);
+  --glass-surface-strong: var(--story-snow);
+  --glass-border: var(--story-ink);
+  --glass-highlight: transparent;
+  --glass-chip: var(--story-snow);
+  --glass-chip-hover: #fff7f3;
+  --glass-control: var(--story-snow);
+  --glass-shadow: none;
+
+  --story-radius-card: 40px;
+  --story-radius-pill: 999px;
+}
+
+/* No elevation, ever. Borders and color do the structural work. */
+:root[data-skin='storybook'] .app-shell *,
+:root[data-skin='storybook'] .app-shell *::before,
+:root[data-skin='storybook'] .app-shell *::after {
+  box-shadow: none !important;
+}
+
+:root[data-skin='storybook'] body,
+:root[data-skin='storybook'] .app-shell,
+:root[data-skin='storybook'] .workspace {
+  background: var(--story-peach);
+  background-image: none;
+  color: var(--story-ink);
+}
+
+/* Keep the workbench paper continuous behind the rounded rail and preview. */
+:root[data-skin='storybook'] .app-shell.view-workbench,
+:root[data-skin='storybook'] .view-workbench :is(.workspace, .production-layout, .workshop-stage) {
+  background: var(--studio-surface);
+}
+
+/* Ink-on-paper structure. */
+:root[data-skin='storybook'] .project-rail {
+  background: var(--story-snow) !important;
+  border-right: 2px solid var(--story-ink) !important;
+  border-radius: 0 40px 40px 0;
+}
+
+:root[data-skin='storybook'] .topbar {
+  background: var(--story-snow) !important;
+  border-bottom: 2px solid var(--story-ink) !important;
+  background-image: none !important;
+}
+
+:root[data-skin='storybook'] .pipeline,
+:root[data-skin='storybook'] .inspector,
+:root[data-skin='storybook'] .inspector-tabs,
+:root[data-skin='storybook'] .settings-page,
+:root[data-skin='storybook'] .experience-report,
+:root[data-skin='storybook'] .preview-pane,
+:root[data-skin='storybook'] .production-diorama,
+:root[data-skin='storybook'] .workshop-player,
+:root[data-skin='storybook'] .asset-requirement-notice {
+  background: var(--story-snow) !important;
+  background-image: none !important;
+  border: 2px solid var(--story-ink);
+  border-radius: 40px;
+}
+
+:root[data-skin='storybook'] .brief-card,
+:root[data-skin='storybook'] .event-card {
+  background: var(--story-snow) !important;
+  background-image: none !important;
+  border: 2px solid var(--story-ink) !important;
+  border-radius: 32px !important;
+  color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .home-prompt-card,
+:root[data-skin='storybook'] .home-idea-starters button,
+:root[data-skin='storybook'] .home-project-grid > button {
+  background: var(--story-snow) !important;
+  background-image: none !important;
+  border: 2px solid var(--story-ink) !important;
+  border-radius: 40px !important;
+  color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .preview-pane iframe {
+  border-radius: 30px;
+  background: var(--studio-surface);
+}
+
+:root[data-skin='storybook'] .inspector-tabs {
+  border-radius: var(--story-radius-pill);
+  padding: 6px;
+}
+
+:root[data-skin='storybook'] .inspector-tabs button {
+  border-radius: var(--story-radius-pill) !important;
+  border: 2px solid transparent;
+  font-weight: 700;
+}
+
+:root[data-skin='storybook'] .inspector-tabs button.is-active {
+  background: var(--story-yellow) !important;
+  border-color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .inspector-tabs button.is-active::after {
+  display: none;
+}
+
+/* Pill controls: white ink-outlined, one crayon fill for primary. */
+:root[data-skin='storybook'] :is(
+  .primary-button,
+  .secondary-button,
+  .danger-button,
+  .run-button,
+  .stop-button,
+  .hero-button,
+  .workshop-submit,
+  .home-toolbar-actions button,
+  .rail-primary-navigation button,
+  .rail-settings,
+  .icon-button,
+  .project-item-more,
+  .rail-collapse,
+  .rail-close,
+  .settings-modal button,
+  .modal button
+) {
+  border: 2px solid var(--story-ink) !important;
+  border-radius: var(--story-radius-pill) !important;
+  background: var(--story-snow) !important;
+  background-image: none !important;
+  color: var(--story-ink) !important;
+  font-family: var(--sans) !important;
+  font-weight: 700 !important;
+}
+
+:root[data-skin='storybook'] :is(
+  .primary-button,
+  .run-button,
+  .hero-button,
+  .workshop-submit
+) {
+  background: var(--story-orange) !important;
+  color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] :is(.danger-button, .stop-button) {
+  background: var(--story-magenta) !important;
+  color: var(--story-snow) !important;
+}
+
+:root[data-skin='storybook'] :is(
+  .primary-button,
+  .secondary-button,
+  .danger-button,
+  .run-button,
+  .stop-button,
+  .hero-button,
+  .workshop-submit,
+  .home-toolbar-actions button,
+  .rail-primary-navigation button,
+  .icon-button
+):hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+:root[data-skin='storybook'] :is(
+  .primary-button,
+  .secondary-button,
+  .danger-button,
+  .run-button,
+  .stop-button,
+  .hero-button,
+  .workshop-submit,
+  .icon-button
+):active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+:root[data-skin='storybook'] .rail-primary-navigation button {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .rail-primary-navigation button.is-active {
+  background: var(--story-yellow) !important;
+  border-color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .project-rail .project-item {
+  border-radius: 28px;
+}
+
+:root[data-skin='storybook'] .project-rail .project-item.is-active {
+  background: var(--story-mint) !important;
+  border: 2px solid var(--story-ink);
+}
+
+:root[data-skin='storybook'] :is(input, textarea, select) {
+  border: 2px solid var(--story-ink) !important;
+  border-radius: 18px !important;
+  background: var(--story-snow) !important;
+  color: var(--story-ink) !important;
+  box-shadow: none !important;
+}
+
+:root[data-skin='storybook'] textarea {
+  border-radius: 26px !important;
+}
+
+:root[data-skin='storybook'] :is(button, a, input, textarea, select):focus-visible {
+  outline: 3px solid var(--story-magenta);
+  outline-offset: 3px;
+}
+
+/* Storybook hero: centered shouting headline + floating ink doodles. */
+:root[data-skin='storybook'] .workshop-banner {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  min-height: 330px;
+  padding: 44px clamp(20px, 5vw, 64px);
+  border: 2px solid var(--story-ink) !important;
+  border-radius: 47px !important;
+  background-color: var(--story-snow) !important;
+  background-image: none !important;
+  color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .workshop-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 9 61 38 92 38 67 57 76 89 50 70 24 89 33 57 8 38 39 38Z' fill='none' stroke='%23000' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100'%3E%3Cpath d='M10 60C22 18 34 92 46 52S70 8 82 56 100 84 110 38' fill='none' stroke='%23000' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 12c22 0 38 16 38 36S72 84 50 84 12 68 12 48 28 12 50 12Zm0 18c-10 0-18 8-18 18' fill='none' stroke='%23000' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M50 62v4' stroke='%23000' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 7% 18%, 91% 22%, 88% 80%;
+  background-size: 58px, 92px, 72px;
+  animation: storybook-doodle-bob 7s ease-in-out infinite;
+}
+
+:root[data-skin='storybook'] .workshop-banner > * {
+  position: relative;
+  z-index: 1;
+}
+
+:root[data-skin='storybook'] .workshop-banner h1 {
+  margin: 14px 0 0;
+  font-family: var(--display) !important;
+  font-size: clamp(42px, 5.6vw, 78px);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--story-ink);
+  text-align: center;
+}
+
+:root[data-skin='storybook'] .workshop-banner h1::after {
+  content: '';
+  display: block;
+  width: min(280px, 60%);
+  height: 9px;
+  margin: 12px auto 0;
+  background: var(--story-yellow);
+  border: 2px solid var(--story-ink);
+  border-radius: var(--story-radius-pill);
+  transform: rotate(-1.4deg);
+  transform-origin: left center;
+}
+
+:root[data-skin='storybook'] .workshop-banner p {
+  margin: 18px auto 0;
+  max-width: 38em;
+  color: var(--story-ink);
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+:root[data-skin='storybook'] .workshop-banner .home-loop-status {
+  color: var(--story-ink);
+  background: var(--story-mint);
+  border: 2px solid var(--story-ink);
+  border-radius: var(--story-radius-pill);
+  padding: 8px 14px;
+  font-weight: 800;
+}
+
+/* Headings carry the slab / storybook voice. Small labels stay Manrope. */
+:root[data-skin='storybook'] :is(h1, h2, h3, .home-projects h2, .brief-card h2) {
+  font-family: var(--display) !important;
+  letter-spacing: -0.01em;
+}
+
+:root[data-skin='storybook'] :is(
+  .eyebrow,
+  .rail-section-heading,
+  .section-heading > div > span,
+  .settings-page-heading > div > span
+) {
+  font-family: var(--sans) !important;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--story-ink);
+}
+
+:root[data-skin='storybook'] .home-projects {
+  border-top: 10px solid var(--story-yellow);
+  padding-top: 28px;
+}
+
+/* Sticker placement: loose, hand-placed rotations. */
+:root[data-skin='storybook'] .home-idea-starters button {
+  transform: rotate(-1.3deg) !important;
+  transition: transform 180ms cubic-bezier(.2, 1.4, .4, 1);
+}
+
+:root[data-skin='storybook'] .home-idea-starters button:nth-child(even) {
+  transform: rotate(1.2deg) !important;
+}
+
+:root[data-skin='storybook'] .home-idea-starters button:hover:not(:disabled) {
+  transform: rotate(0deg) translateY(-4px) scale(1.015) !important;
+}
+
+:root[data-skin='storybook'] .home-project-grid > button {
+  transform: rotate(-0.7deg) !important;
+  transition: transform 180ms cubic-bezier(.2, 1.4, .4, 1);
+}
+
+:root[data-skin='storybook'] .home-project-grid > button:nth-child(3n + 2) {
+  transform: rotate(0.9deg) !important;
+}
+
+:root[data-skin='storybook'] .home-project-grid > button:hover {
+  transform: rotate(0deg) translateY(-3px) !important;
+}
+
+/* Playful motion: sticker pop, doodle float, mascot bob. */
+@keyframes storybook-pop {
+  0% { opacity: 0; translate: 0 10px; scale: .96; }
+  100% { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes storybook-doodle-bob {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-7px) rotate(1.5deg); }
+}
+
+@keyframes storybook-mascot-bob {
+  0%, 100% { transform: translateY(0) rotate(-0.6deg); }
+  50% { transform: translateY(-4px) rotate(0.6deg); }
+}
+
+@keyframes storybook-underline {
+  from { scale: 0 1; }
+  to { scale: 1 1; }
+}
+
+@keyframes storybook-star-spin {
+  0% { opacity: 0; transform: rotate(-40deg) scale(.4); }
+  60% { opacity: 1; transform: rotate(8deg) scale(1.12); }
+  100% { opacity: 1; transform: rotate(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-skin='storybook'] .workshop-creator,
+  :root[data-skin='storybook'] .home-idea-starters button,
+  :root[data-skin='storybook'] .home-project-grid > button,
+  :root[data-skin='storybook'] .brief-card {
+    animation: storybook-pop 420ms cubic-bezier(.2, 1.5, .4, 1) both;
+  }
+
+  :root[data-skin='storybook'] .home-idea-starters button:nth-child(2) {
+    animation-delay: 60ms;
+  }
+
+  :root[data-skin='storybook'] .home-idea-starters button:nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  :root[data-skin='storybook'] .workshop-banner h1::after {
+    animation: storybook-underline 620ms cubic-bezier(.2, 1.3, .4, 1) 120ms both;
+  }
+
+  :root[data-skin='storybook'] .noobi-pixel-sprite {
+    animation: storybook-mascot-bob 2.8s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin='storybook'] .workshop-banner::before,
+  :root[data-skin='storybook'] .noobi-pixel-sprite {
+    animation: none !important;
+  }
+}
+
+/* Paper/sticker page transition: flat crayon tiles, springy, no GIF. */
+:root[data-skin='storybook'] .pixel-transition-scene {
+  display: none !important;
+}
+
+:root[data-skin='storybook'] .pixel-transition-grid > i {
+  background: var(--story-yellow) !important;
+  box-shadow: none !important;
+  border: 2px solid var(--story-ink);
+}
+
+:root[data-skin='storybook'] .pixel-transition-grid > i:nth-child(4n + 2) {
+  background: var(--story-orange) !important;
+}
+
+:root[data-skin='storybook'] .pixel-transition-grid > i:nth-child(4n + 3) {
+  background: var(--story-mint) !important;
+}
+
+:root[data-skin='storybook'] .pixel-transition-grid > i:nth-child(4n + 4) {
+  background: var(--story-lilac) !important;
+}
+
+:root[data-skin='storybook'] .pixel-page-transition.phase-covering .pixel-transition-grid > i {
+  animation: pixel-curtain-cover 280ms cubic-bezier(.2, 1.4, .35, 1) var(--pixel-cell-delay) both;
+}
+
+:root[data-skin='storybook'] .pixel-page-transition.phase-revealing .pixel-transition-grid > i {
+  animation: pixel-curtain-reveal 240ms cubic-bezier(.3, 1.2, .4, 1) var(--pixel-cell-delay) both;
+}
+
+:root[data-skin='storybook'] .pixel-page-transition::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 9 61 38 92 38 67 57 76 89 50 70 24 89 33 57 8 38 39 38Z' fill='%23e7db4c' stroke='%23000' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: storybook-star-spin 420ms cubic-bezier(.2, 1.5, .4, 1) both;
+}
+
+:root[data-skin='storybook'] .app-shell.is-page-transitioning.phase-revealing > .project-rail,
+:root[data-skin='storybook'] .app-shell.is-page-transitioning.phase-revealing > .workspace {
+  animation: pixel-page-enter 380ms cubic-bezier(.2, 1.2, .35, 1) both;
+}
+
+:root[data-skin='storybook'] .app-shell.is-page-transitioning.phase-covering > .project-rail,
+:root[data-skin='storybook'] .app-shell.is-page-transitioning.phase-covering > .workspace {
+  animation: pixel-page-exit 300ms cubic-bezier(.4, 0, .6, 1) both;
+}
+
+/* Workshop field-guide tokens follow the peach paper. */
+:root[data-skin='storybook'] .workshop-home {
+  --guide-paper: var(--story-peach);
+  --guide-ink: var(--story-ink);
+  --guide-muted: #3a2622;
+  --guide-line: var(--story-ink);
+  --guide-accent: var(--story-orange);
+  background: var(--story-peach) !important;
+  background-image: none !important;
+}
+
+:root[data-skin='storybook'] .workshop-home .workshop-creator,
+:root[data-skin='storybook'] .workshop-home .home-idea-starters button {
+  background: var(--story-snow) !important;
+  color: var(--story-ink) !important;
+}
+
+:root[data-skin='storybook'] .workshop-steps [aria-current] {
+  color: var(--story-magenta);
+}
+
+:root[data-skin='storybook'] .workshop-home :is(button, select, textarea):focus-visible {
+  outline: 3px solid var(--story-magenta);
+  outline-offset: 3px;
+}
+
+/* The storybook skin is a light-only brand surface; hide no-op theme controls. */
+:root[data-skin='storybook'] button[title='切换主题'],
+:root[data-skin='storybook'] .appearance-settings {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Workbench viewport fit
+   The preview used to keep a 460px iframe inside a column that also held tabs,
+   toolbar and the save/ask bar, so the game was clipped or needed scrolling.
+   Now the preview stage owns the remaining height, centers the game, and caps
+   its width from the stage height so a 16:9 game plus its HUD fits in one view.
+   ========================================================================== */
+.view-workbench .production-center,
+.view-workbench .studio-canvas,
+.view-workbench .studio-canvas > .inspector,
+.view-workbench .preview-pane {
+  min-height: 0;
+}
+
+.view-workbench .studio-canvas {
+  overflow: hidden;
+}
+
+.view-workbench .studio-canvas > .inspector {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The decorative inspector banner costs ~110px of game area; the topbar
+   already names the project. Keep the compact tabs and toolbar. */
+.view-workbench .workshop-canvas-heading {
+  display: none;
+}
+
+.view-workbench .studio-canvas .inspector-tabs {
+  padding-right: clamp(170px, 24vw, 300px);
+}
+
+.view-workbench .studio-canvas .inspector-toolbar {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  height: 52px;
+  min-height: 52px;
+  flex-basis: 52px;
+  border-bottom: 0;
+  background: transparent;
+  padding: 0 10px;
+}
+
+.view-workbench .studio-canvas .inspector-toolbar > span:first-child {
+  display: none;
+}
+
+.view-workbench .preview-pane {
+  overflow: hidden;
+}
+
+.view-workbench .preview-pane > iframe {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.view-workbench .workshop-stage {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--studio-bg);
+  container-type: size;
+}
+
+.view-workbench .studio-canvas .workshop-stage iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+  flex: 0 1 auto;
+  border: 0;
+  border-radius: 16px;
+  background: var(--studio-surface);
+}
+
+.view-workbench .workshop-player {
+  flex: 0 0 auto;
+  margin: 8px 12px 0;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.view-workbench .workshop-options,
+.view-workbench .workshop-player form {
+  gap: 8px;
+}
+
+/* Give the canvas more of the window; the event stream does not need 430px. */
+@media (min-width: 1080px) {
+  .view-workbench .production-layout {
+    grid-template-columns: minmax(300px, 350px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1380px) {
+  .view-workbench .production-layout {
+    grid-template-columns: minmax(330px, 380px) minmax(0, 1fr);
+  }
+}
+
+/* Play-only is the "sit back and play" mode: no tabs, no toolbars, and a
+   compact save/ask bar, so the stage gets almost the whole window. */
+.view-workbench .production-layout.workshop-play-only .workshop-stage {
+  padding: 6px 0;
+}
+
+.view-workbench .production-layout.workshop-play-only .workshop-player {
+  margin: 6px 12px 0;
+}
+
+/* Keep the inspector tabs content-sized instead of three equal thirds; the
+   active pill no longer reads as a full-width banner. */
+.view-workbench .studio-canvas .inspector-tabs button {
+  min-width: 96px;
+  flex: 0 0 auto;
+  padding: 0 18px;
+}
+
+/* Play-only centers a readable game card instead of stretching a mostly empty
+   white panel across the whole window. */
+@media (min-width: 1080px) {
+  .view-workbench .production-layout.workshop-play-only .studio-canvas {
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+  }
+
+  .view-workbench .production-layout.workshop-play-only .studio-canvas > .inspector {
+    width: min(100%, 1180px);
+    max-width: 1180px;
+    margin: 0 auto 12px;
+  }
+}
+
+/* ==========================================================================
+   Workbench cohesion pass
+   The right side used to be a floating white card on a peach canvas, with a
+   second row of toolbar buttons absolutely parked over the tabs. On narrower
+   windows the tab strip also scrolled its first item out of view. Unify the
+   workbench into one paper surface, keep the toolbar in reserved space, and
+   animate the play-only layout swap instead of cutting it.
+   ========================================================================== */
+.view-workbench .studio-canvas {
+  background: var(--studio-surface);
+}
+
+.view-workbench .studio-canvas > .inspector {
+  margin: 0;
+  border: 0;
+  border-left: 1px solid var(--studio-border);
+  border-radius: 0;
+  background: var(--studio-surface);
+  box-shadow: none;
+}
+
+.view-workbench .studio-canvas .inspector-tabs {
+  border-bottom: 1px solid var(--studio-border);
+  background: var(--studio-surface);
+  padding-right: clamp(140px, 20vw, 260px);
+}
+
+.view-workbench .studio-canvas .inspector-toolbar {
+  border-left: 0;
+  background: transparent;
+}
+
+.view-workbench .inspector-toolbar-actions {
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.view-workbench .experience-report-trigger {
+  white-space: nowrap;
+}
+
+/* Keep every stage visible and equally sized within the pipeline frame. */
+.view-workbench .pipeline.is-compact {
+  container-type: inline-size;
+}
+
+.view-workbench .pipeline.is-compact ol {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+  overflow: visible;
+}
+
+.view-workbench .pipeline.is-compact li {
+  display: flex;
+  min-width: 0;
+  min-height: 46px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 2px;
+  text-align: center;
+}
+
+.view-workbench .pipeline.is-compact li > svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.view-workbench .pipeline.is-compact li strong {
+  color: var(--studio-text);
+  font: 650 13px/1.3 var(--sans);
+  white-space: nowrap;
+  -webkit-font-smoothing: auto;
+}
+
+@container (max-width: 520px) {
+  .view-workbench .pipeline.is-compact ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Dense lists use a lighter card edge than the home-page storybook cards. */
+.view-workbench .brief-card,
+.view-workbench .event-card {
+  border-width: 1px !important;
+  border-radius: 24px !important;
+}
+
+.view-workbench .event-stream {
+  background: var(--studio-surface);
+}
+
+/* Play-only slides the production column away and expands the game card. */
+.view-workbench .production-layout {
+  transition: grid-template-columns 320ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.view-workbench .production-center {
+  transition:
+    opacity 220ms ease,
+    transform 320ms cubic-bezier(.2, .8, .2, 1),
+    border-color 220ms ease;
+}
+
+.view-workbench .production-layout.workshop-play-only {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.view-workbench .production-layout.workshop-play-only .production-center {
+  display: flex !important;
+  width: 0;
+  min-width: 0;
+  flex: 0 0 auto;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-16px);
+  pointer-events: none;
+  border-right-color: transparent;
+}
+
+.view-workbench .production-layout.workshop-play-only .studio-canvas > .inspector {
+  transition:
+    max-width 320ms cubic-bezier(.2, .8, .2, 1),
+    border-radius 240ms ease,
+    margin 240ms ease;
+}
+
+/* Tab content arrives with a short paper slide instead of snapping in. */
+@keyframes workbench-panel-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.view-workbench .preview-pane,
+.view-workbench .asset-studio,
+.view-workbench .file-browser {
+  animation: workbench-panel-in 220ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@media (max-width: 1279px) {
+  .view-workbench .studio-canvas .inspector-tabs {
+    padding-right: 138px;
+  }
+
+  .view-workbench .experience-report-trigger > span,
+  .view-workbench .experience-report-trigger > i {
+    display: none;
+  }
+
+  .view-workbench .inspector-toolbar-actions {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .view-workbench .production-layout.workshop-play-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .view-workbench .production-layout.workshop-play-only .production-center {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-workbench .production-layout,
+  .view-workbench .production-center,
+  .view-workbench .studio-canvas > .inspector {
+    transition: none;
+  }
+
+  .view-workbench .preview-pane,
+  .view-workbench .asset-studio,
+  .view-workbench .file-browser {
+    animation: none;
+  }
+}
+
+/* Narrow workbench: lead with the game, not with the event log. */
+@media (max-width: 1079px) {
+  .view-workbench .production-layout {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .view-workbench .studio-canvas {
+    order: -1;
+    min-height: min(72vh, 640px);
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--studio-border);
+  }
+
+  .view-workbench .studio-canvas > .inspector {
+    margin: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .view-workbench .production-center {
+    min-height: 420px;
+    flex: 0 0 auto;
+    border-right: 0;
+  }
+
+  .view-workbench .workshop-canvas-heading {
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .view-workbench .topbar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .view-workbench .topbar-project {
+    max-width: 34%;
+  }
+
+  .view-workbench .topbar-project strong {
+    font-size: 12px;
+  }
+
+  .view-workbench .workshop-mode-button {
+    min-height: 38px;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .view-workbench .topbar .icon-button {
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+}
+
+/* Play-only is a focused paper card; give it a complete frame and a smooth
+   max-width change instead of inheriting the workbench's single left divider. */
+.view-workbench .studio-canvas > .inspector {
+  max-width: 100%;
+  transition: max-width 320ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@media (min-width: 1080px) {
+  .view-workbench .production-layout.workshop-play-only .studio-canvas > .inspector {
+    border: 2px solid var(--studio-border);
+    border-radius: 40px;
+    overflow: hidden;
+  }
+}
+
+/* Composer footer: the workbench column is narrow, so the asset chip gets its
+   own row and the two selects share a real grid instead of squeezing into
+   overlapping pills. */
+.view-workbench .composer-toolbar {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.view-workbench .composer-toolbar > .asset-requirement.is-chip {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.view-workbench .composer-controls {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: minmax(0, 1fr) 96px 34px;
+  gap: 6px;
+  align-items: center;
+  justify-content: stretch;
+}
+
+.view-workbench .composer-controls label {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.view-workbench .composer-controls select {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding-right: 18px;
+}
+
+.view-workbench .composer-action {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  justify-self: end;
+}
+
+/* Use readable type for controls and working text in the storybook skin. */
+:root[data-skin='storybook'] :is(
+  .topbar-project strong,
+  .runtime-status,
+  .runtime-mini,
+  .project-item,
+  .agent-project-name,
+  .inspector-tabs button,
+  .workshop-mode-button,
+  .composer-controls select,
+  .workshop-player input,
+  .workshop-player button
+) {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 650;
+  -webkit-font-smoothing: auto;
+}
+
+:root[data-skin='storybook'] :is(
+  .engine-chip,
+  .status-chip,
+  .agent-pane-heading > div > span,
+  .agent-pane-heading small,
+  .brief-card .eyebrow,
+  .brief-card footer,
+  .home-project-copy small,
+  .home-project-copy time,
+  .event-card time,
+  .composer-controls label,
+  .rail-section-heading,
+  .experience-report-trigger
+) {
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.35;
+  letter-spacing: 0;
+  -webkit-font-smoothing: auto;
+}
+
+:root[data-skin='storybook'] :is(
+  .brief-card > p,
+  .event-card p,
+  .stream-empty p,
+  .workshop-player p,
+  .home-project-empty span,
+  .settings-page p
+) {
+  color: var(--text-soft);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+:root[data-skin='storybook'] :is(
+  .composer textarea,
+  .workshop-creator textarea,
+  .workshop-options select,
+  .settings-page input,
+  .settings-page select
+) {
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+:root[data-skin='storybook'] :is(.composer, .workshop-creator) textarea::placeholder {
+  color: var(--faint);
+  opacity: 1;
 }

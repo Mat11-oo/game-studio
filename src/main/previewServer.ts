@@ -63,6 +63,8 @@ export interface PreviewStartOptions {
   hideGodotSplash?: boolean;
   /** Overlay fresh public media on a build. Disable for strict delivery playtests. */
   sourceAssetOverlay?: boolean;
+  /** Inject a preview-only compact/fit layer so embedded games show in full. */
+  fitEmbedded?: boolean;
 }
 
 interface PreviewRegistration {
@@ -72,6 +74,7 @@ interface PreviewRegistration {
   sourceFallback: boolean;
   hideGodotSplash: boolean;
   sourceAssetOverlay: boolean;
+  fitEmbedded: boolean;
   url: string;
 }
 
@@ -135,7 +138,8 @@ export class PreviewServer {
       existing.projectRoot === selected.projectRoot &&
       existing.contentRoot === selected.contentRoot &&
       existing.hideGodotSplash === selected.hideGodotSplash &&
-      existing.sourceAssetOverlay === selected.sourceAssetOverlay
+      existing.sourceAssetOverlay === selected.sourceAssetOverlay &&
+      existing.fitEmbedded === selected.fitEmbedded
     ) {
       return existing.url;
     }
@@ -175,6 +179,7 @@ export class PreviewServer {
         sourceFallback: selected.sourceFallback,
         hideGodotSplash: selected.hideGodotSplash,
         sourceAssetOverlay: selected.sourceAssetOverlay,
+        fitEmbedded: selected.fitEmbedded,
         url,
       });
       return url;
@@ -270,7 +275,7 @@ async function handleRequest(
 
   const { target, size, handle } = opened;
 
-  if (selected.hideGodotSplash && relativePath === 'index.html') {
+  if ((selected.hideGodotSplash || selected.fitEmbedded) && relativePath === 'index.html') {
     if (size > MAX_HTML_TRANSFORM_BYTES) {
       await handle.close();
       sendError(response, 500, 'Preview HTML is too large');
@@ -278,7 +283,9 @@ async function handleRequest(
     }
     const source = await handle.readFile('utf8');
     await handle.close();
-    const body = Buffer.from(hideGodotBrandingInHtml(source), 'utf8');
+    const branded = selected.hideGodotSplash ? hideGodotBrandingInHtml(source) : source;
+    const transformed = selected.fitEmbedded ? withEmbeddedPreviewFit(branded) : branded;
+    const body = Buffer.from(transformed, 'utf8');
     response.statusCode = 200;
     response.setHeader('Accept-Ranges', 'none');
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -339,6 +346,7 @@ interface SelectedContentRoot {
   sourceFallback: boolean;
   hideGodotSplash: boolean;
   sourceAssetOverlay: boolean;
+  fitEmbedded: boolean;
 }
 
 interface OpenedPreviewFile {
@@ -396,6 +404,7 @@ async function selectContentRoot(
       sourceFallback: false,
       hideGodotSplash: options.hideGodotSplash === true,
       sourceAssetOverlay: options.sourceAssetOverlay !== false,
+      fitEmbedded: options.fitEmbedded === true,
     };
   } catch (error) {
     if (!isMissingPath(error)) throw error;
@@ -414,10 +423,62 @@ async function selectContentRoot(
     sourceFallback: true,
     hideGodotSplash: options.hideGodotSplash === true,
     sourceAssetOverlay: false,
+    fitEmbedded: options.fitEmbedded === true,
   };
 }
 
-export function hideGodotBrandingInHtml(source: string): string {
+export const EMBEDDED_PREVIEW_FIT = `<style data-noobi-preview-fit>
+  html.noobi-preview, html.noobi-preview body { height: 100% !important; min-height: 0 !important; overflow: hidden !important; }
+  html.noobi-preview body { margin: 0 !important; display: block !important; }
+  html.noobi-preview #app { position: relative !important; display: flex !important; flex-direction: column !important; width: 100% !important; height: 100% !important; max-width: none !important; padding: 0 !important; }
+  html.noobi-preview .topbar { position: relative !important; z-index: 20; flex: 0 0 auto; margin: 0 !important; padding: 5px 10px !important; align-items: center !important; justify-content: flex-end !important; background: #0b263c !important; }
+  html.noobi-preview .topbar > div:first-child { display: none !important; }
+  html.noobi-preview .topbar .tools { margin-left: auto; }
+  html.noobi-preview .topbar .tools button { min-height: 28px !important; padding: 2px 8px !important; font-size: 11px !important; }
+  html.noobi-preview .game-shell { position: relative !important; z-index: 0; flex: 1 1 auto; min-height: 0; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #07172b !important; }
+  html.noobi-preview #game { width: 100% !important; height: 100% !important; aspect-ratio: auto !important; object-fit: contain !important; border-radius: 0 !important; }
+  html.noobi-preview .controls { position: absolute; z-index: 20; right: 10px; bottom: 10px; left: 10px; display: grid !important; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 0 !important; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
+  html.noobi-preview .game-shell:hover .controls, html.noobi-preview .controls:focus-within { opacity: 1; pointer-events: auto; }
+  html.noobi-preview .controls button { min-height: 34px !important; padding: 6px 8px !important; font-size: 12px !important; }
+  html.noobi-preview .status { position: absolute; z-index: 15; right: 0; bottom: 0; left: 0; margin: 0 !important; padding: 6px 12px !important; background: rgba(4, 11, 20, .62); font-size: 12px !important; }
+  html.noobi-preview .hint { display: none !important; }
+  @media (max-width: 760px) {
+    html.noobi-preview .controls { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+</style>
+<script data-noobi-preview-fit>
+(() => {
+  document.documentElement.classList.add('noobi-preview');
+  const apply = () => {
+    if (!document.documentElement.classList.contains('noobi-preview')) return;
+    const root = document.documentElement;
+    let scale = 1;
+    for (let index = 0; index < 3; index += 1) {
+      root.style.zoom = scale === 1 ? '' : String(scale);
+      const height = Math.max(document.body.scrollHeight, root.scrollHeight);
+      if (!height || height <= window.innerHeight + 1) return;
+      const next = Math.min(1, window.innerHeight / height);
+      if (next >= 0.999) return;
+      scale = Math.max(0.45, scale * next);
+    }
+    root.style.zoom = String(scale);
+  };
+  const schedule = () => requestAnimationFrame(() => requestAnimationFrame(apply));
+  window.addEventListener('load', schedule, { once: true });
+  window.addEventListener('resize', schedule);
+  document.addEventListener('DOMContentLoaded', schedule, { once: true });
+  window.setTimeout(schedule, 500);
+})();
+</script>`;
+
+function withEmbeddedPreviewFit(html: string): string {
+  if (html.includes('data-noobi-preview-fit')) return html;
+  if (/<\/head>/iu.test(html)) return html.replace(/<\/head>/iu, `${EMBEDDED_PREVIEW_FIT}</head>`);
+  if (/<\/body>/iu.test(html)) return html.replace(/<\/body>/iu, `${EMBEDDED_PREVIEW_FIT}</body>`);
+  return `${EMBEDDED_PREVIEW_FIT}${html}`;
+}
+
+function hideGodotBrandingInHtml(source: string): string {
   const withoutStaticBranding = source
     .replace(
       /<img\b(?=[^>]*\bid=["']status-splash["'])[^>]*>/iu,

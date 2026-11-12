@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>月光温室 · Moonlit Greenhouse</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #f3ecd8;
+    --muted: #a9b9a9;
+    --night: #07110d;
+    --night-2: #0d1d16;
+    --glass: #11291f;
+    --glass-line: rgba(158, 216, 185, 0.22);
+    --green: #7fd0a4;
+    --green-deep: #2d7a57;
+    --amber: #efbc63;
+    --amber-deep: #a9762c;
+    --soil: #3a2a1d;
+    --soil-light: #5a402a;
+    --red: #ef8a72;
+    --mono: "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
+    --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--night);
+    color: var(--ink);
+    font-family: var(--mono);
+    overflow: hidden;
+  }
+  #app {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 420px;
+    isolation: isolate;
+  }
+  .sky {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(120% 90% at 72% 8%, rgba(63, 117, 96, 0.38), transparent 55%),
+      radial-gradient(90% 70% at 18% 100%, rgba(37, 84, 62, 0.34), transparent 60%),
+      linear-gradient(180deg, #050d0a, var(--night-2) 55%, #081410);
+    overflow: hidden;
+  }
+  .sky::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 22%, rgba(255, 250, 224, 0.85), transparent 60%),
+      radial-gradient(1.2px 1.2px at 32% 12%, rgba(255, 250, 224, 0.6), transparent 60%),
+      radial-gradient(1.6px 1.6px at 48% 28%, rgba(255, 250, 224, 0.7), transparent 60%),
+      radial-gradient(1px 1px at 64% 16%, rgba(255, 250, 224, 0.55), transparent 60%),
+      radial-gradient(1.4px 1.4px at 82% 30%, rgba(255, 250, 224, 0.8), transparent 60%),
+      radial-gradient(1px 1px at 91% 14%, rgba(255, 250, 224, 0.45), transparent 60%),
+      radial-gradient(1.2px 1.2px at 22% 44%, rgba(255, 250, 224, 0.35), transparent 60%),
+      radial-gradient(1.2px 1.2px at 74% 46%, rgba(255, 250, 224, 0.3), transparent 60%);
+    animation: twinkle 7s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.55; } to { opacity: 1; } }
+  .moon {
+    position: absolute;
+    z-index: -1;
+    top: 7%;
+    right: 8%;
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 32%, #fff9dc, #f0dca4 58%, #cdb476);
+    box-shadow: 0 0 42px 12px rgba(244, 228, 172, 0.28), 0 0 120px 40px rgba(244, 228, 172, 0.1);
+  }
+  .moon::after {
+    content: "";
+    position: absolute;
+    inset: 16% 22% 40% 46%;
+    border-radius: 50%;
+    background: rgba(146, 125, 82, 0.22);
+    box-shadow: -18px 12px 0 -4px rgba(146, 125, 82, 0.18);
+  }
+  .fireflies { position: absolute; inset: 0; pointer-events: none; }
+  .fireflies i {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #e8d99a;
+    box-shadow: 0 0 10px 3px rgba(232, 217, 154, 0.55);
+    animation: drift 9s ease-in-out infinite;
+  }
+  .fireflies i:nth-child(1) { left: 16%; top: 62%; animation-delay: -1s; }
+  .fireflies i:nth-child(2) { left: 72%; top: 54%; animation-delay: -3.4s; }
+  .fireflies i:nth-child(3) { left: 83%; top: 70%; animation-delay: -5.2s; }
+  .fireflies i:nth-child(4) { left: 38%; top: 74%; animation-delay: -7.1s; }
+  .fireflies i:nth-child(5) { left: 56%; top: 44%; animation-delay: -2.2s; }
+  @keyframes drift {
+    0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.2; }
+    40% { transform: translate3d(16px, -26px, 0); opacity: 1; }
+    70% { transform: translate3d(-10px, -12px, 0); opacity: 0.6; }
+  }
+
+  .frame {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 18px clamp(16px, 3.4vw, 42px) 20px;
+  }
+  .greenhouse-glass {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(90deg, var(--glass-line) 1px, transparent 1px),
+      linear-gradient(180deg, var(--glass-line) 1px, transparent 1px);
+    background-size: 96px 84px;
+    mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 100%);
+    opacity: 0.5;
+  }
+  .greenhouse-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(115deg, transparent 0 90px, rgba(173, 224, 197, 0.05) 90px 92px);
+  }
+
+  .hud {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2vw, 26px);
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(163, 212, 187, 0.16);
+  }
+  .level-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 8px 13px;
+    border: 1px solid rgba(239, 188, 99, 0.55);
+    border-radius: 4px;
+    background: rgba(239, 188, 99, 0.08);
+    color: var(--amber);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+  }
+  .level-chip b { font-size: 21px; letter-spacing: 0; }
+  .level-chip span { color: rgba(239, 188, 99, 0.62); font-size: 11px; }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-right: auto;
+    min-width: 0;
+  }
+  .brand strong {
+    font-family: var(--serif);
+    font-size: clamp(17px, 2.4vw, 23px);
+    letter-spacing: 0.22em;
+    font-weight: 700;
+  }
+  .brand small { color: var(--muted); font-size: 9px; letter-spacing: 0.34em; }
+  .meters { display: flex; align-items: center; gap: clamp(10px, 2vw, 22px); }
+  .energy { display: flex; gap: 5px; }
+  .leaf {
+    width: 13px;
+    height: 17px;
+    border-radius: 0 70% 0 70%;
+    background: linear-gradient(160deg, #9fe0b8, #3d8a64);
+    transform: rotate(-42deg);
+    box-shadow: inset 0 0 0 1px rgba(4, 20, 13, 0.5), 0 0 10px rgba(149, 226, 181, 0.35);
+    transition: 0.25s ease;
+  }
+  .leaf.spent { background: #22352b; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); transform: rotate(-42deg) scale(0.82); }
+  .stars {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    color: var(--amber);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+  .stars b { font-size: 19px; }
+  .save-btn, .ghost {
+    padding: 8px 11px;
+    border: 1px solid rgba(163, 212, 187, 0.28);
+    border-radius: 4px;
+    background: rgba(10, 28, 20, 0.55);
+    color: var(--muted);
+    font: inherit;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .save-btn:hover, .ghost:hover { color: var(--ink); border-color: var(--green); }
+
+  .stage {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: clamp(16px, 3vw, 40px);
+    align-items: center;
+    padding: 18px 0 4px;
+  }
+  @media (max-width: 860px) {
+    .stage { grid-template-columns: 1fr; align-items: start; overflow-y: auto; }
+    .brand small { display: none; }
+  }
+
+  .bed-scene { display: flex; flex-direction: column; align-items: center; gap: 18px; min-width: 0; }
+  .bed-rig { position: relative; padding: 34px 30px 26px; }
+  .bed {
+    --w: 280px;
+    --h: 200px;
+    position: relative;
+    width: var(--w);
+    height: var(--h);
+    border: 2px solid #7d5c3b;
+    border-radius: 3px;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 30%),
+      repeating-linear-gradient(90deg, var(--soil) 0 34px, var(--soil-light) 34px 36px),
+      repeating-linear-gradient(0deg, var(--soil) 0 30px, #463224 30px 32px);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45), inset 0 0 0 6px rgba(60, 40, 25, 0.55), 0 0 0 1px rgba(239, 188, 99, 0.18);
+    transition: width 0.5s ease, height 0.5s ease;
+  }
+  .bed::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+    border: 1px solid rgba(163, 212, 187, 0.3);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .cut {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 96px;
+    height: 68px;
+    background:
+      repeating-linear-gradient(45deg, rgba(239, 188, 99, 0.2) 0 8px, rgba(239, 188, 99, 0.05) 8px 16px),
+      rgba(7, 17, 13, 0.72);
+    border-left: 1px dashed rgba(239, 188, 99, 0.7);
+    border-top: 1px dashed rgba(239, 188, 99, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--amber);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-align: center;
+    line-height: 1.5;
+    z-index: 2;
+  }
+  .bed.has-cut .cut { display: flex; }
+  .dim {
+    position: absolute;
+    color: var(--ink);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .dim span {
+    padding: 3px 8px;
+    background: rgba(7, 20, 14, 0.86);
+    border: 1px solid rgba(163, 212, 187, 0.26);
+    border-radius: 3px;
+  }
+  .dim i { display: block; background: rgba(163, 212, 187, 0.55); }
+  .dim-x { left: 0; right: 0; bottom: 0; justify-content: center; }
+  .dim-x i { height: 1px; flex: 1; }
+  .dim-y {
+    top: 0; bottom: 0; left: -8px;
+    flex-direction: column-reverse;
+    justify-content: center;
+    transform: translateX(-100%);
+  }
+  .dim-y i { width: 1px; flex: 1; }
+  .dim-y span { writing-mode: vertical-rl; }
+  .crop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .sprout {
+    position: absolute;
+    width: 26px;
+    height: 34px;
+    transform: translate(-50%, -100%) scale(0.35);
+    opacity: 0;
+    transition: transform 0.55s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.35s ease;
+    transform-origin: bottom center;
+  }
+  .sprout::before, .sprout::after {
+    content: "";
+    position: absolute;
+    background: linear-gradient(150deg, #b9f0c9, #4e9d73);
+    border-radius: 0 80% 0 80%;
+    box-shadow: 0 0 14px rgba(146, 233, 178, 0.35);
+  }
+  .sprout::before { left: 2px; top: 6px; width: 15px; height: 19px; transform: rotate(-24deg); }
+  .sprout::after { right: 2px; top: 0; width: 13px; height: 17px; transform: rotate(28deg) scaleX(-1); }
+  .sprout b {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 2px;
+    height: 22px;
+    background: linear-gradient(#7fd0a4, #2f6b4d);
+    transform: translateX(-50%);
+  }
+  .bed.grown .sprout { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  .sprout:nth-child(2) { transition-delay: 0.1s; }
+  .sprout:nth-child(3) { transition-delay: 0.2s; }
+  .sprout:nth-child(4) { transition-delay: 0.3s; }
+  .sprout:nth-child(5) { transition-delay: 0.4s; }
+  .bed.grown { box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45), inset 0 0 0 6px rgba(60, 40, 25, 0.55), 0 0 42px rgba(127, 208, 164, 0.25); }
+
+  .scene-caption {
+    margin: 0;
+    max-width: 440px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.06em;
+  }
+
+  .panel {
+    background: linear-gradient(180deg, rgba(15, 38, 28, 0.92), rgba(9, 24, 18, 0.94));
+    border: 1px solid rgba(163, 212, 187, 0.2);
+    border-radius: 6px;
+    padding: clamp(18px, 2.6vw, 28px);
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42);
+    position: relative;
+    max-width: 520px;
+    justify-self: end;
+    width: 100%;
+  }
+  .panel::before {
+    content: "GREENHOUSE CONTROL";
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 8px;
+    letter-spacing: 0.28em;
+    color: rgba(169, 185, 169, 0.4);
+  }
+  .panel h2 {
+    margin: 8px 0 4px;
+    font-family: var(--serif);
+    font-size: clamp(18px, 2.1vw, 23px);
+    line-height: 1.55;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .panel .kicker {
+    color: var(--amber);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px 0 16px; }
+  .option {
+    position: relative;
+    padding: 18px 8px 15px;
+    border: 1px solid rgba(163, 212, 187, 0.24);
+    border-radius: 4px;
+    background: rgba(7, 22, 15, 0.6);
+    color: var(--ink);
+    font: inherit;
+    font-size: clamp(18px, 2.4vw, 24px);
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .option small { display: block; margin-top: 7px; color: var(--muted); font-size: 9px; letter-spacing: 0.12em; }
+  .option:hover:not(:disabled) { border-color: var(--green); background: rgba(127, 208, 164, 0.1); transform: translateY(-2px); }
+  .option[aria-pressed="true"] { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset, 0 0 24px rgba(239, 188, 99, 0.18); }
+  .option.is-right { border-color: var(--green); background: rgba(127, 208, 164, 0.16); }
+  .option.is-wrong { border-color: var(--red); background: rgba(239, 138, 114, 0.13); }
+  .option:disabled { cursor: default; opacity: 0.86; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .primary {
+    flex: 1;
+    min-width: 150px;
+    padding: 13px 18px;
+    border: 1px solid #f0c476;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #f2c574, #dfa54d);
+    color: #251708;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+  .primary:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+  .primary:disabled { filter: grayscale(0.6); opacity: 0.42; cursor: not-allowed; }
+  .feedback {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-left: 2px solid var(--amber);
+    background: rgba(239, 188, 99, 0.08);
+    color: #f0e6cd;
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.03em;
+  }
+  .feedback.good { border-left-color: var(--green); background: rgba(127, 208, 164, 0.1); }
+  .feedback.bad { border-left-color: var(--red); background: rgba(239, 138, 114, 0.09); }
+  .feedback b { color: var(--amber); }
+
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    transform: translate(-50%, 12px);
+    padding: 8px 14px;
+    border: 1px solid rgba(163, 212, 187, 0.28);
+    background: rgba(7, 20, 14, 0.92);
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border-radius: 3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.24s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .modal {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(3, 10, 7, 0.78);
+    backdrop-filter: blur(6px);
+  }
+  .modal[hidden] { display: none; }
+  .modal-card {
+    width: min(440px, 100%);
+    padding: 30px 28px;
+    border: 1px solid rgba(239, 188, 99, 0.4);
+    border-radius: 6px;
+    background: linear-gradient(180deg, #10281d, #0a1a13);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55);
+    text-align: center;
+  }
+  .modal-card .kicker { color: var(--amber); font-size: 10px; letter-spacing: 0.34em; }
+  .modal-card h2 { margin: 12px 0 6px; font-family: var(--serif); font-size: 27px; letter-spacing: 0.14em; }
+  .modal-card p { margin: 0 0 18px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+  .modal-stars { color: var(--amber); font-size: 30px; letter-spacing: 0.2em; margin: 6px 0 2px; }
+  .modal-card .primary { width: 100%; margin-top: 8px; }
+  @media (max-width: 520px) {
+    .hud { gap: 10px; }
+    .brand { order: 3; width: 100%; }
+    .options { grid-template-columns: 1fr; }
+    .option { padding: 12px 8px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sky"></div>
+  <div class="moon"></div>
+  <div class="fireflies"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="frame">
+    <div class="greenhouse-glass"></div>
+    <header class="hud">
+      <div class="level-chip">第 <b id="levelNo">1</b> 关 <span>/ 3</span></div>
+      <div class="brand">
+        <strong>月光温室</strong>
+        <small>MOONLIT GREENHOUSE · AREA LAB</small>
+      </div>
+      <div class="meters">
+        <div class="energy" id="energy" aria-label="剩余能量"></div>
+        <div class="stars">★ <b id="starCount">0</b><span>/ 9</span></div>
+        <button class="save-btn" id="saveBtn" type="button">保存进度</button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div class="bed-scene">
+        <div class="bed-rig">
+          <div class="dim dim-y"><span id="dimY">3 米</span><i></i></div>
+          <div class="bed" id="bed">
+            <div class="cut" id="cut">工具区 2 × 2<small>不铺营养土</small></div>
+            <div class="crop" id="crop"></div>
+          </div>
+          <div class="dim dim-x"><i></i><span id="dimX">4 米</span><i></i></div>
+        </div>
+        <p class="scene-caption" id="caption"></p>
+      </div>
+
+      <section class="panel" aria-live="polite">
+        <span class="kicker" id="kicker">BED 01 / SOIL</span>
+        <h2 id="question"></h2>
+        <div class="options" id="options" role="group" aria-label="答案选项"></div>
+        <p class="feedback" id="feedback" hidden></p>
+        <div class="actions">
+          <button class="primary" id="submit" type="button" disabled>种下幼苗</button>
+          <button class="ghost" id="retry" type="button" hidden>重新作答</button>
+        </div>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card">
+      <span class="kicker" id="modalKicker">HARVEST</span>
+      <h2 id="modalTitle">温室收获</h2>
+      <div class="modal-stars" id="modalStars">★★★</div>
+      <p id="modalText"></p>
+      <button class="primary" id="modalButton" type="button">再种一季</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const LEVELS = [
+    {
+      x: 4,
+      y: 3,
+      kicker: "BED 01 / SOIL",
+      caption: "第一块苗床长 4 米、宽 3 米。营养土要铺满整个床面，先算清面积再动手。",
+      question: "这块 4 米 × 3 米的苗床，需要多少平方米营养土？",
+      unit: "平方米",
+      answer: 12,
+      options: [7, 12, 14],
+      hint: "面积 = 长 × 宽 = 4 × 3 = 12 平方米。",
+      wrongHint: "面积不是把长和宽相加。想一想：把 4 行、每行 3 平方米的方格铺满，一共多少格？"
+    },
+    {
+      x: 6,
+      y: 4,
+      kicker: "BED 02 / LENGTH",
+      caption: "第二块苗床面积固定为 24 平方米，宽 4 米。你需要判断它到底有多长。",
+      question: "面积 24 平方米、宽 4 米，苗床的长应该是多少米？",
+      unit: "米",
+      answer: 6,
+      options: [5, 6, 8],
+      hint: "长 = 面积 ÷ 宽 = 24 ÷ 4 = 6 米。",
+      wrongHint: "已知面积和宽，求长要用除法：面积 ÷ 宽。试着把 24 平均分成 4 份。"
+    },
+    {
+      x: 5,
+      y: 4,
+      kicker: "BED 03 / TOOL CORNER",
+      caption: "第三块苗床是 5 米 × 4 米，右下角划出了 2 米 × 2 米的工具区。工具区不铺营养土。",
+      question: "去掉工具区后，这块苗床还需要多少平方米营养土？",
+      unit: "平方米",
+      answer: 16,
+      options: [18, 16, 20],
+      hint: "整块 5 × 4 = 20 平方米，工具区 2 × 2 = 4 平方米，20 − 4 = 16 平方米。",
+      wrongHint: "先算整块苗床的面积，再减掉不需要铺土的工具区面积。",
+      cut: true
+    }
+  ];
+
+  const BEST_KEY = "moonlit-greenhouse:best";
+  const SAVE_KEY = "moonlit-greenhouse:save";
+  const state = {
+    level: 0,
+    energy: 3,
+    stars: 0,
+    levelStars: [],
+    attempt: 0,
+    selected: null,
+    locked: false,
+    finished: false
+  };
+  let best = Number(localStorage.getItem(BEST_KEY)) || 0;
+  let toastTimer = 0;
+  let advanceTimer = 0;
+
+  const $ = (id) => document.getElementById(id);
+  const levelNo = $("levelNo");
+  const energyEl = $("energy");
+  const starCount = $("starCount");
+  const bed = $("bed");
+  const crop = $("crop");
+  const cut = $("cut");
+  const dimX = $("dimX");
+  const dimY = $("dimY");
+  const caption = $("caption");
+  const kicker = $("kicker");
+  const question = $("question");
+  const options = $("options");
+  const feedback = $("feedback");
+  const submit = $("submit");
+  const retry = $("retry");
+  const saveBtn = $("saveBtn");
+  const toast = $("toast");
+  const modal = $("modal");
+
+  function post(message) {
+    try {
+      if (window.parent && window.parent !== window) window.parent.postMessage(message, "*");
+    } catch (_) { /* standalone */ }
+  }
+
+  function workshopState(result) {
+    const level = LEVELS[Math.min(state.level, LEVELS.length - 1)];
+    post({
+      type: "workshop:state",
+      variables: {
+        "关卡": "第 " + Math.min(state.level + 1, LEVELS.length) + " 关",
+        "苗床长": level.x + " 米",
+        "苗床宽": level.y + " 米",
+        "剩余能量": state.energy + " 片叶",
+        "累计星级": state.stars + " / 9"
+      },
+      recentActions: state.levelStars.length ? ["已完成第 " + state.levelStars.length + " 关"] : ["准备铺设第一块苗床"],
+      result: result || "等待玩家判断苗床面积"
+    });
+  }
+
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+  }
+
+  function renderEnergy() {
+    energyEl.innerHTML = "";
+    for (let index = 0; index < 3; index += 1) {
+      const leaf = document.createElement("span");
+      leaf.className = "leaf" + (index < state.energy ? "" : " spent");
+      leaf.setAttribute("aria-hidden", "true");
+      energyEl.appendChild(leaf);
+    }
+  }
+
+  function sproutsFor(level) {
+    const spots = [
+      [22, 30], [48, 22], [72, 34], [33, 62], [62, 66]
+    ];
+    return spots.slice(0, level.cut ? 3 : 5).map(([left, top]) => {
+      const sprout = document.createElement("span");
+      sprout.className = "sprout";
+      sprout.style.left = left + "%";
+      sprout.style.top = top + "%";
+      sprout.innerHTML = "<b></b>";
+      return sprout;
+    });
+  }
+
+  function renderLevel() {
+    const level = LEVELS[state.level];
+    state.attempt = 0;
+    state.selected = null;
+    state.locked = false;
+    state.finished = false;
+    bed.classList.remove("grown");
+    bed.classList.toggle("has-cut", Boolean(level.cut));
+    bed.style.setProperty("--w", Math.min(380, level.x * 60) + "px");
+    bed.style.setProperty("--h", Math.min(280, level.y * 52) + "px");
+    if (level.cut) {
+      cut.innerHTML = "工具区 2 × 2<small>不铺营养土</small>";
+    }
+    crop.innerHTML = "";
+    sproutsFor(level).forEach((sprout) => crop.appendChild(sprout));
+    levelNo.textContent = String(state.level + 1);
+    starCount.textContent = String(state.stars);
+    dimX.textContent = state.level === 1 ? "? 米" : level.x + " 米";
+    dimY.textContent = level.y + " 米";
+    caption.textContent = level.caption;
+    kicker.textContent = level.kicker;
+    question.textContent = level.question;
+    feedback.hidden = true;
+    feedback.className = "feedback";
+    feedback.innerHTML = "";
+    options.innerHTML = "";
+    level.options.forEach((value, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "option";
+      button.dataset.value = String(value);
+      button.setAttribute("aria-pressed", "false");
+      button.innerHTML = value + "<small>按 " + (index + 1) + " 选择</small>";
+      button.addEventListener("click", () => selectOption(button));
+      options.appendChild(button);
+    });
+    submit.disabled = true;
+    submit.textContent = state.level === LEVELS.length - 1 ? "收获这一季" : "种下幼苗";
+    retry.hidden = true;
+    renderEnergy();
+    workshopState();
+  }
+
+  function selectOption(button) {
+    if (state.locked) return;
+    state.selected = button;
+    Array.from(options.children).forEach((option) => {
+      option.setAttribute("aria-pressed", option === button ? "true" : "false");
+    });
+    submit.disabled = false;
+  }
+
+  function starsForAttempt() {
+    if (state.attempt === 0) return 3;
+    if (state.attempt === 1) return 2;
+    return 1;
+  }
+
+  function lockOptions() {
+    Array.from(options.children).forEach((option) => { option.disabled = true; });
+    retry.hidden = true;
+    submit.disabled = true;
+  }
+
+  function submitAnswer() {
+    if (state.locked || !state.selected) return;
+    const level = LEVELS[state.level];
+    const value = Number(state.selected.dataset.value);
+    state.locked = true;
+    lockOptions();
+    if (value === level.answer) {
+      state.selected.classList.add("is-right");
+      const gained = starsForAttempt();
+      state.stars += gained;
+      state.levelStars.push(gained);
+      bed.classList.add("grown");
+      starCount.textContent = String(state.stars);
+      feedback.className = "feedback good";
+      feedback.innerHTML = "<b>答对了。</b>" + level.hint + " 获得 " + gained + " 颗星。";
+      feedback.hidden = false;
+      workshopState("第 " + (state.level + 1) + " 关判断正确，获得 " + gained + " 颗星");
+      advanceTimer = setTimeout(nextLevel, 1450);
+    } else {
+      state.attempt += 1;
+      state.energy -= 1;
+      state.selected.classList.add("is-wrong");
+      renderEnergy();
+      feedback.className = "feedback bad";
+      feedback.innerHTML = "<b>营养土不够了。</b>" + level.wrongHint + " 失去 1 片叶子。";
+      feedback.hidden = false;
+      workshopState("第 " + (state.level + 1) + " 关判断错误，失去一片叶子");
+      if (state.energy <= 0) {
+        setTimeout(() => finish(false), 950);
+      } else {
+        setTimeout(() => { retry.hidden = false; }, 650);
+      }
+    }
+  }
+
+  function retryLevel() {
+    if (state.locked && retry.hidden) return;
+    const level = LEVELS[state.level];
+    state.locked = false;
+    state.selected = null;
+    feedback.hidden = true;
+    feedback.className = "feedback";
+    Array.from(options.children).forEach((option) => {
+      option.disabled = false;
+      option.classList.remove("is-wrong");
+      option.setAttribute("aria-pressed", "false");
+    });
+    submit.disabled = true;
+    retry.hidden = true;
+    caption.textContent = level.caption;
+  }
+
+  function nextLevel() {
+    if (state.level >= LEVELS.length - 1) {
+      finish(true);
+      return;
+    }
+    state.level += 1;
+    renderLevel();
+  }
+
+  function finish(won) {
+    if (state.finished) return;
+    state.finished = true;
+    clearTimeout(advanceTimer);
+    const total = state.stars;
+    best = Math.max(best, total);
+    localStorage.setItem(BEST_KEY, String(best));
+    $("modalKicker").textContent = won ? "HARVEST / SAVED" : "ENERGY EMPTY";
+    $("modalTitle").textContent = won ? "温室收获" : "幼苗枯萎了";
+    $("modalStars").textContent = won
+      ? "★".repeat(Math.max(1, Math.round(total / 3))) + "☆".repeat(3 - Math.max(1, Math.round(total / 3)))
+      : "☆☆☆";
+    $("modalText").innerHTML = won
+      ? "本季共获得 <b>" + total + " / 9</b> 颗星，最佳记录 <b>" + best + "</b> 颗星。<br>每一块苗床的面积，都可以用长 × 宽来核对。"
+      : "能量用完了，但记录还在。重新开始，先想清楚长、宽和面积的关系。";
+    $("modalButton").textContent = won ? "再种一季" : "重新开始";
+    modal.hidden = false;
+    workshopState(won ? "本季完成，共获得 " + total + " 颗星" : "能源耗尽，本季结束");
+    post({ type: "workshop:save", data: savedPayload() });
+  }
+
+  function savedPayload() {
+    return {
+      level: state.level,
+      energy: state.energy,
+      stars: state.stars,
+      levelStars: state.levelStars.slice(),
+      best
+    };
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(savedPayload()));
+    } catch (_) { /* storage disabled */ }
+    post({ type: "workshop:save", data: savedPayload() });
+    showToast("进度已保存 · 最佳 " + best + " 星");
+  }
+
+  function loadProgress(data) {
+    if (!data || typeof data !== "object") return false;
+    const safeLevel = Math.max(0, Math.min(LEVELS.length - 1, Number(data.level) || 0));
+    state.level = safeLevel;
+    state.energy = Math.max(1, Math.min(3, Number(data.energy) || 3));
+    state.stars = Math.max(0, Math.min(9, Number(data.stars) || 0));
+    state.levelStars = Array.isArray(data.levelStars) ? data.levelStars.slice(0, LEVELS.length) : [];
+    best = Math.max(best, Number(data.best) || 0, state.stars);
+    renderLevel();
+    showToast("已读取上次的温室进度");
+    return true;
+  }
+
+  function restart() {
+    state.level = 0;
+    state.energy = 3;
+    state.stars = 0;
+    state.levelStars = [];
+    state.finished = false;
+    modal.hidden = true;
+    renderLevel();
+  }
+
+  submit.addEventListener("click", submitAnswer);
+  retry.addEventListener("click", retryLevel);
+  saveBtn.addEventListener("click", saveProgress);
+  $("modalButton").addEventListener("click", restart);
+
+  window.addEventListener("keydown", (event) => {
+    if (modal.hidden === false) {
+      if (event.key === "Enter") restart();
+      return;
+    }
+    const index = Number(event.key) - 1;
+    const option = options.children[index];
+    if (option && !option.disabled) {
+      event.preventDefault();
+      selectOption(option);
+    } else if (event.key === "Enter" && !submit.disabled) {
+      event.preventDefault();
+      submitAnswer();
+    }
+  });
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const message = event.data;
+    if (!message || typeof message !== "object") return;
+    if (message.type === "workshop:load") loadProgress(message.data);
+  });
+
+  renderLevel();
+  post({ type: "workshop:ready" });
+})();
+</script>
+</body>
+</html>

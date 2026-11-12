@@ -62,7 +62,7 @@ describe('ApprovalBroker', () => {
     expect(runtime.rejectServerRequest).toHaveBeenCalledWith(
       'unknown-1',
       -32601,
-      'Noobi.ai does not support attestation/generate',
+      '游戏工坊 does not support attestation/generate',
     );
   });
 });

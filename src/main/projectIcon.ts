@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 
 import type { MediaGenerationService } from './mediaGenerationService.js';
+import { readWorkshopProposal } from '../shared/knowledgeWorkshop.js';
 import type { ProjectIcon, ProjectRecord } from '../shared/contracts.js';
 
 export const PROJECT_ICON_RELATIVE_PATH = '.noobi/icon.png';
@@ -193,7 +194,7 @@ export function encodePngRgba(width: number, height: number, rgba: Uint8Array): 
 }
 
 function buildAiIconPrompt(project: ProjectRecord): string {
-  const idea = project.idea.replace(/\s+/gu, ' ').trim().slice(0, 400);
+  const idea = (readWorkshopProposal(project.idea)?.plan ?? project.idea).replace(/\s+/gu, ' ').trim().slice(0, 400);
   return [
     `Pixel art game icon for a game titled "${project.name}".`,
     idea ? `Game concept: ${idea}.` : '',
@@ -310,9 +311,44 @@ export async function readProjectIconBytes(
  * Every project gets a deterministic procedural pixel icon at creation time,
  * so the rail and dashboard never depend on a paid provider round-trip.
  */
+const ICON_THEMES = [
+  { match: /救援车|赛车|竞速|驾驶|车辆|\b(racing|driving|vehicle|car)\b/iu, background: '#183746', ink: '#f5c26a', accent: '#ff805d',
+    art: ['............', '............', '.....aa.....', '....####....', '...######...', '..##aa####..', '.##########.', '.a########a.', '.##########.', '..a......a..', '..a......a..', '............'] },
+  { match: /种植|温室|花园|农场|\b(garden|farming|greenhouse)\b/iu, background: '#203d32', ink: '#a9dc82', accent: '#f5c075',
+    art: ['............', '............', '..##....##..', '..###..###..', '...######...', '.....##.....', '.....##.....', '..aaaaaaaa..', '...aaaaaa...', '...aaaaaa...', '....aaaa....', '............'] },
+  { match: /太空|星球|宇宙|火箭|\b(space|rocket|planet)\b/iu, background: '#242952', ink: '#b4dfff', accent: '#ffbe65',
+    art: ['........a...', '.....##.....', '....####....', '....#aa#....', '....#aa#....', '....####....', '...######...', '...######...', '.....aa.....', '.....aa.....', '......a.....', '..a.........'] },
+  { match: /拼图|解谜|谜题|面积|几何|数学|\b(puzzle|geometry|math)\b/iu, background: '#352954', ink: '#c9aaff', accent: '#7de0c4',
+    art: ['............', '.#####aaaaa.', '.#####aaaaa.', '.####aaaaaa.', '.###aaaaaaa.', '.#####aaaaa.', '.aaaaa#####.', '.aaaaaaa###.', '.aaaaaa####.', '.aaaaa#####.', '.aaaaa#####.', '............'] },
+  { match: /冒险|探索|迷宫|闯关|\b(adventure|exploration|maze)\b/iu, background: '#3f2d47', ink: '#ffe0a1', accent: '#ff7e69',
+    art: ['............', '....####....', '..##aaaa##..', '..#aaaaaa#..', '.#aaa##aaa#.', '.#aa####aa#.', '.#aa####aa#.', '.#aaa##aaa#.', '..#aaaaaa#..', '..##aaaa##..', '....####....', '............'] },
+] as const;
+
+export function renderThemedProjectIcon(project: ProjectRecord): Buffer {
+  const proposal = readWorkshopProposal(project.idea);
+  const description = `${project.name} ${proposal?.plan ?? project.idea}`;
+  const theme = ICON_THEMES.find(({ match }) => match.test(description))
+    ?? (proposal?.topic === 'speed' ? ICON_THEMES[0] : proposal?.topic === 'area' ? ICON_THEMES[3] : ICON_THEMES[4]);
+  const size = PROJECT_ICON_GRID_SIZE;
+  const rgba = new Uint8Array(size * size * 4);
+  const palette = {
+    '.': Buffer.from(theme.background.slice(1), 'hex'),
+    '#': Buffer.from(theme.ink.slice(1), 'hex'),
+    'a': Buffer.from(theme.accent.slice(1), 'hex'),
+  };
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const pixel = theme.art[y - 2]?.[x - 2] as keyof typeof palette | undefined;
+      const offset = (y * size + x) * 4;
+      rgba.set(palette[pixel ?? '.'], offset);
+      rgba[offset + 3] = 255;
+    }
+  }
+  return encodePngRgba(size, size, rgba);
+}
+
 export async function generateProceduralProjectIcon(project: ProjectRecord): Promise<ProjectIcon> {
-  const { width, height, rgba } = renderProceduralIconPixels(`${project.id}:${project.name}`);
-  return writeProjectIcon(project, encodePngRgba(width, height, rgba), 'procedural');
+  return writeProjectIcon(project, renderThemedProjectIcon(project), 'themed');
 }
 
 /**

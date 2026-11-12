@@ -11,7 +11,6 @@ import {
   LogIn,
   LogOut,
   Monitor,
-  Palette,
   RefreshCw,
   Save,
   Settings2,
@@ -25,19 +24,9 @@ import type {
   LoginStartResult,
   RuntimeStatus,
 } from '../../shared/contracts';
-import {
-  DEFAULT_NOOBI_CREW,
-  DEFAULT_NOOBI_PACK_ID,
-  DEFAULT_NOOBI_SCENE_ID,
-  DEFAULT_NOOBI_SOLO_SCENE_ID,
-  DEFAULT_NOOBI_STAGE_MODE,
-} from '../../shared/contracts';
 import { runtimeLabel, toMessage } from '../ui';
 import { Modal } from './Modal';
 import { EnvironmentSettings } from './EnvironmentSettings';
-import { NoobiCrewPicker } from './NoobiCrewPicker';
-import { NoobiPackPicker } from './NoobiPackPicker';
-import { NoobiScenePicker, NoobiSoloScenePicker } from './NoobiScenePicker';
 import {
   McpSettings,
   MediaApiSettings,
@@ -46,7 +35,7 @@ import {
   useExtensionSettings,
 } from './SettingsExtensions';
 
-export type SettingsSection = 'account' | 'environment' | 'media' | 'defaults' | 'noobi' | 'skills' | 'mcp' | 'prompts' | 'appearance';
+export type SettingsSection = 'account' | 'environment' | 'media' | 'defaults' | 'skills' | 'mcp' | 'prompts' | 'appearance';
 
 interface SettingsModalProps {
   value: AppSettings;
@@ -62,7 +51,6 @@ const SECTIONS = [
   { id: 'environment', label: '环境管理', detail: 'Node、Codex、Godot', icon: Cpu },
   { id: 'media', label: '媒体 API', detail: '图像、音频、3D', icon: Boxes },
   { id: 'defaults', label: '项目默认值', detail: '目录、模型、推理', icon: Settings2 },
-  { id: 'noobi', label: 'Noobi 工坊', detail: '伙伴形象与场景', icon: Palette },
   { id: 'skills', label: 'Skills', detail: 'Agent 专业能力', icon: FileCode2 },
   { id: 'mcp', label: 'MCP Servers', detail: '工具与数据连接', icon: Cable },
   { id: 'prompts', label: '提示词', detail: '分角色模板', icon: FileText },
@@ -95,7 +83,6 @@ export function SettingsModal({
   const efforts = selectedModel?.efforts.length
     ? selectedModel.efforts
     : ['minimal', 'low', 'medium', 'high', 'xhigh'];
-  const noobiStageMode = draft.defaultNoobiStageMode ?? DEFAULT_NOOBI_STAGE_MODE;
 
   async function refreshRuntime() {
     setBusy(true);
@@ -185,7 +172,7 @@ export function SettingsModal({
       footer={
         <>
           <span className="settings-feedback" role="status">{message}</span>
-          {section === 'defaults' || section === 'noobi' || section === 'appearance' ? (
+          {section === 'defaults' || section === 'appearance' ? (
             <button className="primary-button" type="button" disabled={busy} onClick={() => void save()}>
               <Save size={15} /> {busy ? '保存中…' : '保存设置'}
             </button>
@@ -286,109 +273,6 @@ export function SettingsModal({
             </section>
           ) : null}
 
-          {section === 'noobi' ? (
-            <section>
-              <SettingsHeading
-                eyebrow="NOOBI WORKSHOP"
-                title="选择默认搭档与工作场景"
-                description="默认先由一位 Noobi 在一个单人工作室中陪你制作；多人编队与多人场景放在下方，按需启用。"
-              />
-
-              <section
-                className={`noobi-mode-panel noobi-solo-panel${noobiStageMode === 'solo' ? ' is-active' : ''}`}
-                aria-label="默认单人搭档与工作室"
-              >
-                <header className="noobi-mode-panel-heading">
-                  <div>
-                    <small>SOLO / DEFAULT</small>
-                    <strong>一位搭档，一个工作室</strong>
-                    <p>角色和场景分别选择，可以自由组合；选择任一项都会把单人模式设为默认。</p>
-                  </div>
-                  <span className="noobi-mode-state">
-                    {noobiStageMode === 'solo' ? '当前默认' : '点击选项启用'}
-                  </span>
-                </header>
-
-                <section className="noobi-setup-step" aria-labelledby="noobi-character-step-title">
-                  <header className="noobi-setup-step-heading">
-                    <span aria-hidden="true">01</span>
-                    <div>
-                      <small>SOLO PARTNER</small>
-                      <strong id="noobi-character-step-title">先选择一位默认角色</strong>
-                      <p>这位 Noobi 会独自出现在制作预览里，并跟随 Agent 的阶段行动。</p>
-                    </div>
-                  </header>
-                  <NoobiPackPicker
-                    value={draft.defaultNoobiPackId ?? DEFAULT_NOOBI_PACK_ID}
-                    mode="global"
-                    presentation="character"
-                    busy={busy}
-                    onChange={(defaultNoobiPackId) => {
-                      if (!defaultNoobiPackId) return;
-                      setDraft((current) => ({
-                        ...current,
-                        defaultNoobiPackId,
-                        defaultNoobiStageMode: 'solo',
-                      }));
-                    }}
-                  />
-                </section>
-
-                <NoobiSoloScenePicker
-                  value={draft.defaultNoobiSoloSceneId ?? DEFAULT_NOOBI_SOLO_SCENE_ID}
-                  busy={busy}
-                  onChange={(defaultNoobiSoloSceneId) => {
-                    setDraft((current) => ({
-                      ...current,
-                      defaultNoobiSoloSceneId,
-                      defaultNoobiStageMode: 'solo',
-                    }));
-                  }}
-                />
-              </section>
-
-              <section
-                className={`noobi-mode-panel noobi-multiplayer-panel${noobiStageMode === 'crew' ? ' is-active' : ''}`}
-                aria-label="多人协作与多人场景"
-              >
-                <header className="noobi-mode-panel-heading">
-                  <div>
-                    <small>MULTIPLAYER / OPTIONAL</small>
-                    <strong>需要时，再组建多人编队</strong>
-                    <p>先配置 2–4 位伙伴的岗位，再在最下方选择一个多人舞台。</p>
-                  </div>
-                  <span className="noobi-mode-state">
-                    {noobiStageMode === 'crew' ? '当前默认' : '可选模式'}
-                  </span>
-                </header>
-
-                <NoobiCrewPicker
-                  value={draft.defaultNoobiCrew ?? DEFAULT_NOOBI_CREW}
-                  busy={busy}
-                  onChange={(defaultNoobiCrew) => {
-                    setDraft((current) => ({ ...current, defaultNoobiCrew }));
-                  }}
-                />
-                <NoobiScenePicker
-                  value={noobiStageMode === 'crew'
-                    ? draft.defaultNoobiSceneId ?? DEFAULT_NOOBI_SCENE_ID
-                    : null}
-                  busy={busy}
-                  onChange={(defaultNoobiSceneId) => {
-                    setDraft((current) => ({
-                      ...current,
-                      defaultNoobiSceneId,
-                      defaultNoobiStageMode: 'crew',
-                    }));
-                  }}
-                />
-                <p className="noobi-pack-settings-note">
-                  只有选择多人舞台后，制作预览才会切换为编队模式。协作工坊按岗位渲染当前编队；荷塘钓鱼保留固定四人的完整动态演出。
-                </p>
-              </section>
-            </section>
-          ) : null}
-
           {section === 'skills' ? <SkillsSettings controller={extensions} /> : null}
 
           {section === 'mcp' ? <McpSettings controller={extensions} /> : null}
@@ -402,7 +286,7 @@ export function SettingsModal({
           ) : null}
 
           {section === 'appearance' ? (
-            <section>
+            <section className="appearance-settings">
               <SettingsHeading
                 eyebrow="APPEARANCE"
                 title="界面主题"
@@ -457,7 +341,7 @@ function AccountSettings({
       <SettingsHeading
         eyebrow="CODEX APP SERVER"
         title="运行时与账户"
-        description="Noobi 通过官方 App Server 使用 Codex；认证在系统浏览器中完成。"
+        description="工坊通过官方 App Server 使用 Codex；认证在系统浏览器中完成。"
         action={
           <button className="secondary-button compact" type="button" disabled={busy} onClick={onRefresh}>
             <RefreshCw size={13} className={busy ? 'spin' : ''} /> 刷新

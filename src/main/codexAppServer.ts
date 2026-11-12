@@ -142,6 +142,7 @@ export interface StartThreadOptions {
   approvalPolicy?: 'untrusted' | 'on-request' | 'never';
   developerInstructions?: string;
   ephemeral?: boolean;
+  disableTools?: { mcpServers: string[] };
   dynamicTools?: DynamicToolSpec[];
 }
 
@@ -366,6 +367,14 @@ export class CodexAppServer extends EventEmitter {
         : {}),
       ...(options.ephemeral === undefined ? {} : { ephemeral: options.ephemeral }),
       ...(options.dynamicTools ? { dynamicTools: options.dynamicTools } : {}),
+      ...(options.disableTools ? {
+        config: {
+          'features.shell_tool': false,
+          'features.multi_agent': false,
+          web_search: 'disabled',
+          ...Object.fromEntries(options.disableTools.mcpServers.map((id) => [`mcp_servers.${id}.enabled`, false])),
+        },
+      } : {}),
       experimentalRawEvents: false,
     });
     return result.thread.id;
@@ -543,7 +552,7 @@ export class CodexAppServer extends EventEmitter {
       const initialized = await peer.request<InitializeResponse>('initialize', {
         clientInfo: {
           name: 'noobi_ai',
-          title: 'Noobi.ai Game Agent',
+          title: '游戏工坊 Game Agent',
           version: '0.1.0',
         },
         capabilities: {

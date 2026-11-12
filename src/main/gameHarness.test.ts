@@ -15,9 +15,35 @@ import {
   GameHarness,
   GameHarnessStoppedError,
   gameHarnessTurnTimeoutMs,
+  gameHarnessTurnIdleTimeoutMs,
   MAX_GAME_HARNESS_REPAIR_ATTEMPTS,
+  parseReview,
   reusableImplementerThreadId,
 } from './gameHarness.js';
+
+describe('game harness playability gate', () => {
+  it('turns a pass with a weak playability dimension into a repair', () => {
+    const review = parseReview(JSON.stringify({
+      verdict: 'pass',
+      summary: 'Looks playable.',
+      findings: [],
+      playability: { agency: 4, clarity: 4, challenge: 2, feedback: 4, replay: 3, learning: 4 },
+    }));
+    expect(review.verdict).toBe('repair');
+    expect(review.findings.join(' ')).toContain('PLAYABILITY: challenge=2');
+  });
+
+  it('keeps a pass when every playability dimension is at least 3', () => {
+    const review = parseReview(JSON.stringify({
+      verdict: 'pass',
+      summary: 'Looks playable.',
+      findings: [],
+      playability: { agency: 4, clarity: 4, challenge: 3, feedback: 4, replay: 3, learning: 4 },
+    }));
+    expect(review.verdict).toBe('pass');
+    expect(review.playability).toMatchObject({ challenge: 3 });
+  });
+});
 
 describe('game harness timeout policy', () => {
   it('gives implementation and repair enough time for complex games', () => {
@@ -25,6 +51,8 @@ describe('game harness timeout policy', () => {
     expect(gameHarnessTurnTimeoutMs('reviewer')).toBe(20 * 60 * 1_000);
     expect(gameHarnessTurnTimeoutMs('implementer')).toBe(60 * 60 * 1_000);
     expect(gameHarnessTurnTimeoutMs('repair')).toBe(60 * 60 * 1_000);
+    expect(gameHarnessTurnIdleTimeoutMs()).toBe(10 * 60 * 1_000);
+    expect(gameHarnessTurnIdleTimeoutMs()).toBeLessThan(gameHarnessTurnTimeoutMs('repair'));
   });
 });
 
