@@ -811,6 +811,13 @@ describe('wisdom level profile', () => {
       .toThrow('levels.count');
   });
 
+  it('enforces the requested custom level count', () => {
+    const sixLevels = parseGameplayPlaytestManifest({ ...wisdomManifest(), levels: { count: 6 } });
+
+    expect(() => assertWisdomPlaytestManifest(sixLevels, 6)).not.toThrow();
+    expect(() => assertWisdomPlaytestManifest(sixLevels, 8)).toThrow('必须等于 8');
+  });
+
   it('passes the mistake and level gates and blocks an early terminal screen', async () => {
     const root = await temporaryRoot();
     await mkdir(join(root, '.noobi'), { recursive: true });
