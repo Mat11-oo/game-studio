@@ -812,10 +812,10 @@ describe('wisdom level profile', () => {
   });
 
   it('enforces the requested custom level count', () => {
-    const sixLevels = parseGameplayPlaytestManifest({ ...wisdomManifest(), levels: { count: 6 } });
+    const fiveLevels = parseGameplayPlaytestManifest({ ...wisdomManifest(), levels: { count: 5 } });
 
-    expect(() => assertWisdomPlaytestManifest(sixLevels, 6)).not.toThrow();
-    expect(() => assertWisdomPlaytestManifest(sixLevels, 8)).toThrow('必须等于 8');
+    expect(() => assertWisdomPlaytestManifest(fiveLevels, 5)).not.toThrow();
+    expect(() => assertWisdomPlaytestManifest(fiveLevels, 4)).toThrow('必须等于 4');
   });
 
   it('passes the mistake and level gates and blocks an early terminal screen', async () => {

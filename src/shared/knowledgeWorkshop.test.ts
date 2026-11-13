@@ -48,14 +48,14 @@ describe('workshop level count', () => {
   });
 
   it('round-trips a custom level count', () => {
-    const idea = serializeWorkshopProposal(proposal(6));
+    const idea = serializeWorkshopProposal(proposal(5));
 
-    expect(readWorkshopProposal(idea)?.levelCount).toBe(6);
+    expect(readWorkshopProposal(idea)?.levelCount).toBe(5);
   });
 
   it('rejects a level count outside the supported range', () => {
     const idea = '知识冒险工坊 V1\n' + JSON.stringify({
-      ...proposal(12),
+      ...proposal(6),
     });
 
     expect(readWorkshopProposal(idea)).toBeNull();

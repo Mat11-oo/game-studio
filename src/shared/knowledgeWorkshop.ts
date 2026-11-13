@@ -16,7 +16,7 @@ export const KNOWLEDGE_RULES = {
 export type KnowledgeTopic = keyof typeof KNOWLEDGE_RULES | 'open';
 
 export const WORKSHOP_LEVEL_MIN = 3;
-export const WORKSHOP_LEVEL_MAX = 8;
+export const WORKSHOP_LEVEL_MAX = 5;
 export const DEFAULT_WORKSHOP_LEVEL_COUNT = 3;
 
 export interface WorkshopProposal {
