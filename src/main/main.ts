@@ -1,5 +1,5 @@
 import { publishWorkshopVersion, readWorkshopVersions, restoreWorkshopVersion } from './workshopVersions.js';
-import { KNOWLEDGE_RULES, isWorkshopProposal, readWorkshopProposal, serializeWorkshopProposal, workshopInstructions } from '../shared/knowledgeWorkshop.js';
+import { KNOWLEDGE_RULES, isWorkshopProposal, readWorkshopProposal, serializeWorkshopProposal, workshopInstructions, workshopLevelCount } from '../shared/knowledgeWorkshop.js';
 import { installWorkshopRule, verifyWorkshopRule } from './workshopRules.js';
 import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, readFile, realpath, rm } from 'node:fs/promises';
@@ -1716,6 +1716,7 @@ async function performProjectExperienceEvaluation(
     }
     throwIfExperienceEvaluationAborted(signal);
     const previewUrl = await startProductionPreview(project);
+    const proposal = readWorkshopProposal(project.idea);
     report = await gameplayExperienceEvaluator.evaluate({
       projectRoot: project.root,
       previewUrl,
@@ -1723,7 +1724,8 @@ async function performProjectExperienceEvaluation(
       expectedEntrypoint: project.engine === 'godot'
         ? 'build/web/index.html'
         : 'dist/index.html',
-      profile: readWorkshopProposal(project.idea) ? 'wisdom' : 'standard',
+      profile: proposal ? 'wisdom' : 'standard',
+      expectedLevelCount: proposal ? workshopLevelCount(proposal) : undefined,
       signal,
     });
   } catch (error) {

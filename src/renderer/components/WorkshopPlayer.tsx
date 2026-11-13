@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { KNOWLEDGE_RULES, type WorkshopProposal } from '../../shared/knowledgeWorkshop';
+import { KNOWLEDGE_RULES, workshopLevelCount, type WorkshopProposal } from '../../shared/knowledgeWorkshop';
 
 interface Props {
   projectId: string;
@@ -28,6 +28,10 @@ export function WorkshopPlayer({ projectId, name, url, version, proposal }: Prop
       if (!message || typeof message !== 'object') return;
       if (message.type === 'workshop:ready') {
         setReady(true);
+        frame.current?.contentWindow?.postMessage(
+          { type: 'workshop:config', levelCount: workshopLevelCount(proposal) },
+          origin,
+        );
       } else if (message.type === 'workshop:state') {
         const { variables, recentActions, result } = message;
         if (!variables || typeof variables !== 'object' || Array.isArray(variables)
@@ -52,7 +56,7 @@ export function WorkshopPlayer({ projectId, name, url, version, proposal }: Prop
     }
     window.addEventListener('message', receive);
     return () => window.removeEventListener('message', receive);
-  }, [origin, storageKey, version]);
+  }, [origin, proposal, storageKey, version]);
 
   function load() {
     try {

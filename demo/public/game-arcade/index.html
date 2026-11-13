@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>霓虹突围 · Neon Breakout</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #04080f; }
+  body {
+    display: grid;
+    place-items: center;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    color: #dff8ff;
+  }
+  #shell {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 1280px;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #04080f;
+    overflow: hidden;
+  }
+  .hud {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2vw, 24px);
+    padding: 14px clamp(14px, 3vw, 28px);
+    border-bottom: 1px solid rgba(86, 233, 255, 0.22);
+    background: linear-gradient(180deg, rgba(8, 22, 36, 0.96), rgba(4, 10, 18, 0.86));
+    z-index: 2;
+  }
+  .level {
+    padding: 7px 11px;
+    border: 1px solid rgba(86, 233, 255, 0.5);
+    border-radius: 3px;
+    color: #71f0ff;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+  }
+  .level b { font-size: 18px; letter-spacing: 0; }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-right: auto;
+    min-width: 0;
+  }
+  .brand strong {
+    font-size: clamp(16px, 2.2vw, 22px);
+    letter-spacing: 0.26em;
+    color: #f2fbff;
+    text-shadow: 0 0 18px rgba(86, 233, 255, 0.35);
+  }
+  .brand small { color: #5d7d92; font-size: 8px; letter-spacing: 0.34em; }
+  .meter { display: flex; align-items: center; gap: 6px; color: #ff5cc8; font-size: 11px; letter-spacing: 0.1em; }
+  .meter strong { color: #ffd166; font-size: 17px; }
+  .hearts { display: flex; gap: 4px; }
+  .hearts i {
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    border: 1px solid #ff6fb5;
+    background: #ff3d9a;
+    box-shadow: 0 0 9px rgba(255, 61, 154, 0.6);
+  }
+  .hearts i.spent { background: transparent; box-shadow: none; opacity: 0.4; }
+  .stage { position: relative; flex: 1; min-height: 0; }
+  canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: radial-gradient(60% 60% at 50% 45%, rgba(5, 18, 30, 0.55), rgba(2, 6, 12, 0.92));
+    z-index: 3;
+    text-align: center;
+    transition: opacity 0.2s ease;
+  }
+  .overlay[hidden] { display: none; }
+  .panel {
+    width: min(440px, 100%);
+    padding: 30px 28px;
+    border: 1px solid rgba(86, 233, 255, 0.36);
+    background: rgba(5, 14, 24, 0.9);
+    box-shadow: 0 0 60px rgba(24, 141, 255, 0.18), inset 0 0 40px rgba(24, 141, 255, 0.05);
+  }
+  .panel small { color: #65f4ff; font-size: 9px; letter-spacing: 0.3em; }
+  .panel h1 {
+    margin: 12px 0 8px;
+    font-size: clamp(26px, 4vw, 36px);
+    letter-spacing: 0.18em;
+    color: #f2fbff;
+    text-shadow: 0 0 24px rgba(86, 233, 255, 0.4);
+  }
+  .panel p { margin: 0 0 18px; color: #89a9bb; font-size: 12px; line-height: 1.8; }
+  .panel button {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #65f4ff;
+    background: linear-gradient(180deg, rgba(38, 214, 255, 0.22), rgba(38, 214, 255, 0.06));
+    color: #bff8ff;
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+  }
+  .panel button:hover { background: rgba(38, 214, 255, 0.28); }
+  .keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; color: #5d7d92; font-size: 9px; letter-spacing: 0.08em; }
+  .keys kbd { padding: 2px 6px; border: 1px solid #2b4658; border-radius: 3px; color: #9cc3d5; }
+  .flash { animation: flash 0.28s ease; }
+  @keyframes flash { 50% { background: rgba(255, 61, 154, 0.18); } }
+</style>
+</head>
+<body>
+<div id="shell">
+  <header class="hud">
+    <div class="level">第 <b id="waveNo">1</b> 关 <span>/ 3</span></div>
+    <div class="brand"><strong>霓虹突围</strong><small>NEON BREAKOUT · WAVE SURVIVAL</small></div>
+    <div class="hearts" id="hearts" aria-label="剩余生命"></div>
+    <div class="meter">SCORE <strong id="score">0</strong></div>
+  </header>
+  <div class="stage">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div class="overlay" id="overlay">
+      <div class="panel">
+        <small id="overlayKicker">WAVE SURVIVAL</small>
+        <h1 id="overlayTitle">霓虹突围</h1>
+        <p id="overlayText">WASD 移动，鼠标瞄准，按住左键或空格射击。撑过 3 波敌人，击败最后一波的 Boss。</p>
+        <button id="startBtn" type="button">开始突围</button>
+        <div class="keys"><kbd>WASD</kbd><kbd>鼠标瞄准</kbd><kbd>左键 / 空格</kbd><kbd>R 重开</kbd></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  "use strict";
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const overlay = document.getElementById("overlay");
+  const waveNo = document.getElementById("waveNo");
+  const scoreEl = document.getElementById("score");
+  const heartsEl = document.getElementById("hearts");
+  const W = canvas.width;
+  const H = canvas.height;
+  const keys = new Set();
+  const mouse = { x: W / 2, y: H / 2, down: false };
+  const MAX_WAVE = 3;
+  let state;
+
+  function reset() {
+    state = {
+      phase: "idle",
+      wave: 1,
+      hp: 5,
+      score: 0,
+      player: { x: W / 2, y: H / 2, vx: 0, vy: 0, cool: 0, invuln: 0 },
+      enemies: [],
+      bullets: [],
+      particles: [],
+      stars: Array.from({ length: 70 }, () => ({ x: Math.random() * W, y: Math.random() * H, z: 0.3 + Math.random() * 0.7 })),
+      pending: 0,
+      spawnTimer: 0,
+      waveBreak: 0,
+      boss: null,
+      time: 0,
+      shake: 0,
+      message: ""
+    };
+    waveNo.textContent = "1";
+    scoreEl.textContent = "0";
+    renderHearts();
+    draw();
+  }
+
+  function renderHearts() {
+    heartsEl.innerHTML = "";
+    for (let i = 0; i < 5; i += 1) {
+      const heart = document.createElement("i");
+      if (i >= state.hp) heart.className = "spent";
+      heartsEl.appendChild(heart);
+    }
+  }
+
+  function begin() {
+    reset();
+    state.phase = "playing";
+    overlay.hidden = true;
+    startWave(1);
+  }
+
+  function startWave(wave) {
+    state.wave = wave;
+    state.pending = wave === MAX_WAVE ? 0 : 5 + wave * 3;
+    state.spawnTimer = 0.6;
+    state.waveBreak = 0;
+    state.boss = null;
+    waveNo.textContent = String(wave);
+    if (wave === MAX_WAVE) {
+      spawnBoss();
+      state.message = "BOSS · 霓虹收割者";
+      state.messageTimer = 2.2;
+    } else {
+      state.message = "第 " + wave + " 波";
+      state.messageTimer = 1.4;
+    }
+  }
+
+  function spawnEnemy() {
+    const edge = Math.floor(Math.random() * 4);
+    const pad = 30;
+    let x;
+    let y;
+    if (edge === 0) { x = Math.random() * W; y = -pad; }
+    else if (edge === 1) { x = W + pad; y = Math.random() * H; }
+    else if (edge === 2) { x = Math.random() * W; y = H + pad; }
+    else { x = -pad; y = Math.random() * H; }
+    const angle = Math.atan2(state.player.y - y, state.player.x - x);
+    const speed = 74 + state.wave * 24 + Math.random() * 18;
+    state.enemies.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: 13 + Math.random() * 5,
+      hp: 2,
+      hue: Math.random() > 0.5 ? 315 : 190,
+      boss: false,
+      t: Math.random() * 6
+    });
+  }
+
+  function spawnBoss() {
+    const boss = {
+      x: W / 2, y: 110,
+      vx: 68, vy: 26,
+      r: 44,
+      hp: 44,
+      maxHp: 44,
+      hue: 315,
+      boss: true,
+      t: 0
+    };
+    state.enemies.push(boss);
+    state.boss = boss;
+  }
+
+  function fire() {
+    const player = state.player;
+    if (player.cool > 0) return;
+    player.cool = 0.11;
+    const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+    const speed = 640;
+    state.bullets.push({
+      x: player.x + Math.cos(angle) * 18,
+      y: player.y + Math.sin(angle) * 18,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.1
+    });
+    state.shake = Math.min(4, state.shake + 1);
+    for (let i = 0; i < 3; i += 1) burst(player.x, player.y, 190, 1);
+  }
+
+  function burst(x, y, hue, count) {
+    for (let i = 0; i < count; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 30 + Math.random() * 160;
+      state.particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.4 + Math.random() * 0.5,
+        max: 0.9,
+        hue
+      });
+    }
+  }
+
+  function hurt() {
+    if (state.player.invuln > 0) return;
+    state.player.invuln = 1.1;
+    state.hp -= 1;
+    state.shake = 14;
+    renderHearts();
+    burst(state.player.x, state.player.y, 330, 18);
+    if (state.hp <= 0) endGame(false);
+  }
+
+  function endGame(won) {
+    state.phase = won ? "won" : "lost";
+    document.getElementById("overlayKicker").textContent = won ? "SECTOR CLEARED" : "SIGNAL LOST";
+    document.getElementById("overlayTitle").textContent = won ? "突围成功" : "信号中断";
+    document.getElementById("overlayText").textContent = won
+      ? "最终得分 " + state.score + "。三波敌人已清除，霓虹城暂时安全。"
+      : "最终得分 " + state.score + "。重新开始，试着保持移动并优先清理靠近的敌人。";
+    document.getElementById("startBtn").textContent = won ? "再来一局" : "重新突围";
+    overlay.hidden = false;
+    overlay.querySelector(".panel").classList.add("flash");
+    setTimeout(() => overlay.querySelector(".panel").classList.remove("flash"), 300);
+  }
+
+  function update(dt) {
+    const player = state.player;
+    state.time += dt;
+    state.shake = Math.max(0, state.shake - dt * 30);
+    if (player.invuln > 0) player.invuln -= dt;
+    if (state.messageTimer > 0) state.messageTimer -= dt;
+
+    const ax = (keys.has("d") || keys.has("arrowright") ? 1 : 0) - (keys.has("a") || keys.has("arrowleft") ? 1 : 0);
+    const ay = (keys.has("s") || keys.has("arrowdown") ? 1 : 0) - (keys.has("w") || keys.has("arrowup") ? 1 : 0);
+    const length = Math.hypot(ax, ay) || 1;
+    player.vx += (ax / length) * 1500 * dt;
+    player.vy += (ay / length) * 1500 * dt;
+    player.vx *= Math.pow(0.0015, dt);
+    player.vy *= Math.pow(0.0015, dt);
+    player.x = Math.max(20, Math.min(W - 20, player.x + player.vx * dt));
+    player.y = Math.max(20, Math.min(H - 20, player.y + player.vy * dt));
+    player.cool -= dt;
+
+    if (mouse.down || keys.has(" ") || keys.has("space")) fire();
+
+    if (state.pending > 0) {
+      state.spawnTimer -= dt;
+      if (state.spawnTimer <= 0) {
+        spawnEnemy();
+        state.pending -= 1;
+        state.spawnTimer = Math.max(0.16, 0.64 - state.wave * 0.08);
+      }
+    }
+
+    for (const bullet of state.bullets) {
+      bullet.x += bullet.vx * dt;
+      bullet.y += bullet.vy * dt;
+      bullet.life -= dt;
+    }
+    state.bullets = state.bullets.filter((bullet) => bullet.life > 0 && bullet.x > -20 && bullet.x < W + 20 && bullet.y > -20 && bullet.y < H + 20);
+
+    for (const enemy of state.enemies) {
+      enemy.t += dt;
+      if (enemy.boss) {
+        if (enemy.x < 70 || enemy.x > W - 70) enemy.vx *= -1;
+        if (enemy.y < 80 || enemy.y > H * 0.45) enemy.vy *= -1;
+        enemy.x += enemy.vx * dt;
+        enemy.y += enemy.vy * dt;
+      } else {
+        enemy.x += enemy.vx * dt;
+        enemy.y += enemy.vy * dt;
+      }
+
+      const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+      if (dist < enemy.r + 15) hurt();
+
+      for (const bullet of state.bullets) {
+        if (bullet.life <= 0) continue;
+        if (Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y) < enemy.r + 4) {
+          bullet.life = 0;
+          enemy.hp -= 1;
+          burst(bullet.x, bullet.y, enemy.hue, 5);
+          if (enemy.hp <= 0) {
+            enemy.dead = true;
+            state.score += enemy.boss ? 250 : 25;
+            scoreEl.textContent = String(state.score);
+            burst(enemy.x, enemy.y, enemy.hue, enemy.boss ? 40 : 14);
+            state.shake = enemy.boss ? 20 : 5;
+          }
+        }
+      }
+    }
+
+    state.enemies = state.enemies.filter((enemy) => !enemy.dead);
+    state.bullets = state.bullets.filter((bullet) => bullet.life > 0);
+
+    for (const particle of state.particles) {
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      particle.vx *= 0.98;
+      particle.vy *= 0.98;
+      particle.life -= dt;
+    }
+    state.particles = state.particles.filter((particle) => particle.life > 0);
+
+    if (state.pending === 0 && state.enemies.length === 0 && state.waveBreak === 0) {
+      if (state.wave >= MAX_WAVE) {
+        endGame(true);
+      } else {
+        state.waveBreak = 1.6;
+        state.message = "第 " + state.wave + " 波清除";
+        state.messageTimer = 1.2;
+      }
+    }
+    if (state.waveBreak > 0 && state.pending === 0 && state.enemies.length === 0) {
+      state.waveBreak -= dt;
+      if (state.waveBreak <= 0) {
+        state.waveBreak = 0;
+        startWave(state.wave + 1);
+      }
+    }
+  }
+
+  function draw() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const shakeX = (Math.random() - 0.5) * state.shake;
+    const shakeY = (Math.random() - 0.5) * state.shake;
+    ctx.translate(shakeX, shakeY);
+
+    const bg = ctx.createRadialGradient(W * 0.5, H * 0.5, 40, W * 0.5, H * 0.5, W * 0.72);
+    bg.addColorStop(0, "#081826");
+    bg.addColorStop(0.6, "#050d18");
+    bg.addColorStop(1, "#02050b");
+    ctx.fillStyle = bg;
+    ctx.fillRect(-20, -20, W + 40, H + 40);
+
+    ctx.strokeStyle = "rgba(38, 139, 180, 0.16)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 48) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 48) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    for (const star of state.stars) {
+      star.y += star.z * 8 * 0.016;
+      if (star.y > H) star.y = 0;
+      ctx.fillStyle = "rgba(156, 230, 255, " + (0.18 + star.z * 0.4) + ")";
+      ctx.fillRect(star.x, star.y, star.z * 1.6, star.z * 1.6);
+    }
+
+    for (const particle of state.particles) {
+      const alpha = Math.max(0, particle.life / particle.max);
+      ctx.fillStyle = "hsla(" + particle.hue + ", 100%, 68%, " + alpha + ")";
+      ctx.fillRect(particle.x - 1.5, particle.y - 1.5, 3, 3);
+    }
+
+    for (const bullet of state.bullets) {
+      ctx.save();
+      ctx.shadowColor = "#67efff";
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = "#bffaff";
+      ctx.fillRect(bullet.x - 2, bullet.y - 2, 4, 4);
+      ctx.restore();
+    }
+
+    for (const enemy of state.enemies) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.rotate(enemy.t * 0.6);
+      ctx.shadowColor = "hsla(" + enemy.hue + ", 100%, 60%, 0.9)";
+      ctx.shadowBlur = enemy.boss ? 34 : 18;
+      ctx.strokeStyle = "hsla(" + enemy.hue + ", 100%, 70%, 0.95)";
+      ctx.lineWidth = enemy.boss ? 4 : 2;
+      const r = enemy.r;
+      ctx.beginPath();
+      if (enemy.boss) {
+        for (let i = 0; i < 6; i += 1) {
+          const angle = (Math.PI * 2 * i) / 6;
+          const radius = i % 2 === 0 ? r : r * 0.62;
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+      } else {
+        ctx.moveTo(0, -r);
+        ctx.lineTo(r * 0.86, r * 0.5);
+        ctx.lineTo(-r * 0.86, r * 0.5);
+        ctx.closePath();
+      }
+      ctx.stroke();
+      ctx.fillStyle = "hsla(" + enemy.hue + ", 100%, 60%, 0.14)";
+      ctx.fill();
+      ctx.restore();
+      if (enemy.boss) {
+        ctx.fillStyle = "rgba(255, 92, 200, 0.85)";
+        ctx.fillRect((W - 260) / 2, 16, 260 * (enemy.hp / enemy.maxHp), 5);
+        ctx.strokeStyle = "rgba(255, 92, 200, 0.4)";
+        ctx.strokeRect((W - 260) / 2, 16, 260, 5);
+      }
+    }
+
+    const player = state.player;
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(Math.atan2(mouse.y - player.y, mouse.x - player.x) + Math.PI / 2);
+    ctx.shadowColor = player.invuln > 0 && Math.floor(state.time * 20) % 2 === 0 ? "#ff4f9a" : "#67efff";
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = player.invuln > 0 && Math.floor(state.time * 20) % 2 === 0 ? "#ff8fc4" : "#bffaff";
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(13, 13);
+    ctx.lineTo(0, 7);
+    ctx.lineTo(-13, 13);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    if (state.messageTimer > 0) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, state.messageTimer * 2);
+      ctx.fillStyle = "#dff8ff";
+      ctx.font = "600 20px 'SFMono-Regular', Menlo, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(state.message, W / 2, H * 0.28);
+      ctx.restore();
+    }
+
+    if (state.phase === "playing" && state.pending > 0) {
+      ctx.fillStyle = "rgba(156, 230, 255, 0.45)";
+      ctx.font = "10px 'SFMono-Regular', Menlo, monospace";
+      ctx.textAlign = "right";
+      ctx.fillText("INCOMING " + state.pending, W - 18, H - 16);
+    }
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    if (state.phase === "playing") update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function setKey(event, down) {
+    const key = event.key.toLowerCase();
+    if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " ", "space"].includes(key)) {
+      event.preventDefault();
+    }
+    if (down) keys.add(key); else keys.delete(key);
+  }
+
+  window.addEventListener("keydown", (event) => {
+    setKey(event, true);
+    if (event.key.toLowerCase() === "r") begin();
+    if (state.phase !== "playing" && (event.key === "Enter" || event.key === " ")) begin();
+  });
+  window.addEventListener("keyup", (event) => setKey(event, false));
+
+  canvas.addEventListener("pointermove", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * W;
+    mouse.y = ((event.clientY - rect.top) / rect.height) * H;
+  });
+  canvas.addEventListener("pointerdown", (event) => {
+    mouse.down = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    if (state.phase !== "playing") begin();
+  });
+  window.addEventListener("pointerup", () => { mouse.down = false; });
+
+  document.getElementById("startBtn").addEventListener("click", begin);
+
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -12261,3 +12261,118 @@ a {
   color: var(--faint);
   opacity: 1;
 }
+
+/* ==========================================================================
+   Free creation mode
+   ========================================================================== */
+
+.workshop-home .creation-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid var(--guide-line);
+  border-radius: 8px;
+  background: var(--guide-paper);
+}
+
+.workshop-home .creation-mode-switch button {
+  display: grid;
+  gap: 2px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--guide-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.workshop-home .creation-mode-switch button span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--guide-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workshop-home .creation-mode-switch button small {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+
+.workshop-home .creation-mode-switch button.is-active {
+  background: var(--guide-accent);
+}
+
+.workshop-home .creation-mode-switch button.is-active span,
+.workshop-home .creation-mode-switch button.is-active small {
+  color: var(--guide-paper);
+}
+
+.workshop-home .creation-mode-switch button.is-active small { opacity: 0.82; }
+.workshop-home .creation-mode-switch button:disabled { cursor: default; opacity: 0.6; }
+
+.workshop-home .creation-mode-switch i {
+  padding: 1px 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.workshop-home .free-mode-hint {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--guide-line);
+  border-radius: 4px;
+  color: var(--guide-muted);
+  font-size: 11.5px;
+  line-height: 1.65;
+}
+
+.workshop-home .free-idea-starters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.workshop-home .free-starters-label {
+  align-self: center;
+  margin-right: 2px;
+  color: var(--guide-muted);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.workshop-home .free-idea-starters button {
+  display: grid;
+  gap: 1px;
+  padding: 9px 12px;
+  border: 2px solid var(--guide-line);
+  border-radius: 4px;
+  background: var(--guide-paper);
+  color: var(--guide-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, transform 0.16s ease;
+}
+
+.workshop-home .free-idea-starters button:not(:disabled):hover {
+  border-color: var(--guide-accent);
+  transform: translateY(-1px);
+}
+
+.workshop-home .free-idea-starters button:disabled { cursor: default; opacity: 0.55; }
+.workshop-home .free-idea-starters small { color: var(--guide-muted); font-size: 9px; letter-spacing: 0.06em; }
+.workshop-home .free-idea-starters strong { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.workshop-home .free-idea-starters svg { opacity: 0.45; }
+
+@media (max-width: 640px) {
+  .workshop-home .creation-mode-switch button small { display: none; }
+  .workshop-home .free-starters-label { width: 100%; }
+}

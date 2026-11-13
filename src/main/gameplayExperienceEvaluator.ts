@@ -190,6 +190,8 @@ export interface GameplayExperienceEvaluationOptions {
   signal?: AbortSignal;
   /** 「智慧闯关」projects add mandatory mistake-path and level-progression gates. */
   profile?: 'standard' | 'wisdom';
+  /** Exact number of knowledge levels the workshop proposal requested. */
+  expectedLevelCount?: number;
   timeoutMs?: number;
   initialDelayMs?: number;
   keyHoldMs?: number;
@@ -401,10 +403,17 @@ export async function readGameplayPlaytestManifest(projectRoot: string): Promise
   return manifest;
 }
 
-export function assertWisdomPlaytestManifest(manifest: GameplayPlaytestManifest): void {
+export function assertWisdomPlaytestManifest(
+  manifest: GameplayPlaytestManifest,
+  expectedLevelCount?: number,
+): void {
   const findings: string[] = [];
   if (!manifest.actions.mistake) findings.push('actions.mistake 缺失');
   if (!manifest.levels || manifest.levels.count < 3) findings.push('levels.count 必须 ≥ 3');
+  if (manifest.levels && expectedLevelCount !== undefined
+    && manifest.levels.count !== expectedLevelCount) {
+    findings.push(`levels.count 必须等于 ${expectedLevelCount}`);
+  }
   if (!manifest.journey.some((step) => step.action === 'mistake')) {
     findings.push('journey 缺少 action="mistake" 的步骤');
   }
@@ -717,7 +726,7 @@ export class GameplayExperienceEvaluator {
     let manifest: GameplayPlaytestManifest;
     try {
       manifest = await readGameplayPlaytestManifest(projectRoot);
-      if (profile === 'wisdom') assertWisdomPlaytestManifest(manifest);
+      if (profile === 'wisdom') assertWisdomPlaytestManifest(manifest, options.expectedLevelCount);
       state.levelCount = manifest.levels?.count ?? 0;
       if (options.expectedEngine !== undefined && manifest.engine !== options.expectedEngine) {
         throw new Error(

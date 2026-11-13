@@ -25,7 +25,7 @@
   <a href="README.md"><strong>English</strong></a>
 </p>
 
-![游戏工坊制作工作台，包含 Agent 管线、可玩预览、素材与工程文件](docs/images/noobi-workbench.png)
+![游戏工坊制作工作台：Agent 管线、事件流与可玩预览](docs/images/game-studio-workbench.jpg)
 
 游戏工坊不让单个 Agent 在一次回合里即兴完成所有工作，而是把 Codex 放进一条有边界的游戏制作循环：只读 Planner 拆解任务，Implementer 在独立工程目录中实现，独立 Reviewer 检查真实结果，宿主再正式构建并自动试玩。审查、构建或体验评测未通过时，会交回同一个 Implementer，最多连续修复三轮。
 
@@ -43,6 +43,11 @@
 | **真实多媒体管线** | 图片、音乐、语音、音效和 3D 可走配置的 Provider、Codex ImageGen、导入素材或程序化回退；失败素材仍以可重试占位留在素材页。 |
 | **工程归用户所有** | 每个游戏都是普通本地项目，可以检查文件、继续用 Codex 修改、提交 Git，或完全脱离游戏工坊使用。 |
 | **为扩展而设计** | 可增加媒体 Provider、Codex Skills、MCP Server、角色提示词、工程模板、Godot 导出目标或全新的工作台 UI。 |
+
+## 两种创作模式
+
+- **知识闯关**：按年级和知识主题生成提案，可自定义 3–8 个递进关卡，知识必须驱动玩法，并由宿主校验知识是否真正参与。
+- **自由创作**：不需要知识主题或年级。同一套 Planner → Implementer → Reviewer → 构建 → 自动试玩循环，可制作动作、解谜、射击、经营等任意类型。
 
 ## 快速开始
 
@@ -90,7 +95,7 @@ flowchart LR
 
 工作台用 `Brief → Scaffold → GDD → Assets → World → Code → Verify → Complete` 展示制作进度；真正的完成条件由 Reviewer 与宿主证明门禁共同决定。
 
-![游戏工坊鸭嘴兽吉祥物编排代码、动画、3D、音频与可玩世界](docs/images/noobi-game-agent-poster.png)
+![游戏工坊创作台：知识闯关与自由创作入口](docs/images/game-studio-home.jpg)
 
 ## Fork 并定制
 

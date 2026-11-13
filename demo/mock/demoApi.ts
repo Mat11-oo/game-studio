@@ -1,5 +1,6 @@
 import type {
   AgentEvent,
+  ApprovalRequest,
   AppSettings,
   AssetPlanRecord,
   BootstrapPayload,
@@ -14,7 +15,7 @@ import type {
   ProjectRecord,
   RuntimeStatus,
 } from '../../src/shared/contracts';
-import { serializeWorkshopProposal } from '../../src/shared/knowledgeWorkshop';
+import { readWorkshopProposal, serializeWorkshopProposal } from '../../src/shared/knowledgeWorkshop';
 
 const SEED_ID = 'moonlit-greenhouse';
 const DEMO_ROOT = '/Users/demo/Noobi Workspace';
@@ -85,6 +86,7 @@ const SEED_IDEA = serializeWorkshopProposal({
   grade: 5,
   audience: 'self',
   topic: 'area',
+  levelCount: 3,
   plan: AREA_PLAN,
 });
 
@@ -210,6 +212,101 @@ const SCRIPT: ScriptStep[] = [
   },
 ];
 
+
+const FREE_SCRIPT: ScriptStep[] = [
+  {
+    kind: 'plan',
+    stage: 'brief',
+    title: '拆解玩法循环',
+    message: '题材：自由创作，不绑定知识主题或年级。\n核心循环：移动 → 瞄准/射击 → 清波 → 结算；三关递进，最后一关加入 Boss。验收标准：可见 HUD、可重开、有失败与胜利结算、动画连续。',
+  },
+  {
+    kind: 'lifecycle',
+    stage: 'scaffold',
+    title: '创建 Web 工程骨架',
+    message: '工作区：free-project\n引擎：Web（Canvas 2D）\n已创建 index.html、src/game.js、src/enemies.js、src/state.js 与 .noobi/playtest.json。',
+  },
+  {
+    kind: 'tool',
+    stage: 'scaffold',
+    title: '安装工程依赖',
+    message: '> npm install\nadded 0 packages, audited 1 package in 0.3s\n保持零运行时依赖，构建与试玩由宿主执行。',
+    method: 'host.shell',
+  },
+  {
+    kind: 'file',
+    stage: 'scaffold',
+    title: '写入页面骨架',
+    message: 'apply_patch: index.html, src/styles.css\n建立 HUD、关卡标签、生命与分数、开始/失败/胜利覆盖层。',
+    method: 'apply_patch',
+  },
+  {
+    kind: 'plan',
+    stage: 'gdd',
+    title: '设计三关难度曲线',
+    message: '第 1 关：少量追击敌人；第 2 关：提高移速并增加数量；第 3 关：Boss 与弹幕压力。每关有明确的清场条件与分数结算。',
+  },
+  {
+    kind: 'tool',
+    stage: 'assets',
+    title: '生成霓虹网格背景',
+    message: 'imagegen.generate({\n  prompt: "neon grid skyline, synthwave, deep navy and magenta glow, 16:9",\n  size: "960x540"\n}) → assets/neon-grid.png',
+    method: 'imagegen.generate',
+  },
+  {
+    kind: 'file',
+    stage: 'assets',
+    title: '接入生成素材',
+    message: 'apply_patch: src/scene.js, styles.css\n背景通过真实路径引用，宿主重新校验生成来源与引用关系。',
+    method: 'apply_patch',
+  },
+  {
+    kind: 'assistant',
+    stage: 'world',
+    title: '搭建霓虹城场景',
+    message: '网格、星点、天际线与粒子分层绘制；受击时屏幕抖动，Boss 出现时切换 HUD 提示。',
+  },
+  {
+    kind: 'assistant',
+    stage: 'code',
+    title: '实现移动、瞄准与射击',
+    message: 'WASD 加速度移动，鼠标瞄准，按住左键或空格连续射击；敌人追击与碰撞扣血，受击后短暂无敌并闪烁。',
+  },
+  {
+    kind: 'file',
+    stage: 'code',
+    title: '写入战斗与波次逻辑',
+    message: 'apply_patch: src/game.js, src/enemies.js, src/state.js\n实现三波敌人、Boss、分数、生命、重开与胜负结算。',
+    method: 'apply_patch',
+  },
+  {
+    kind: 'tool',
+    stage: 'verify',
+    title: '构建正式版本',
+    message: '> npm run build\nvite v6.0.7 building for production...\n✓ 8 modules transformed.\ndist/index.html  0.38 kB\n构建完成，0 错误 0 警告。',
+    method: 'host.shell',
+  },
+  {
+    kind: 'lifecycle',
+    stage: 'verify',
+    title: '构建通过',
+    message: '产物已写入 .noobi/build/，宿主开始加载正式构建并执行隐藏浏览器试玩。',
+  },
+  {
+    kind: 'tool',
+    stage: 'verify',
+    title: '自动试玩：移动、射击与重开',
+    message: 'playtest.run\n✓ 开始游戏后玩家可移动并改变画面\n✓ 射击命中敌人、分数增加\n✓ 受击扣血，生命归零进入失败结算\n✓ 重开后回到第 1 关',
+    method: 'playtest.run',
+  },
+  {
+    kind: 'assistant',
+    stage: 'complete',
+    title: '交付可玩版本',
+    message: '正式构建与自动试玩通过。可以在右侧直接游玩，也可以继续提出修改要求。',
+  },
+];
+
 const EXPERIENCE_CHECKS: GameplayExperienceCheck[] = [
   { id: 'load', label: '正式构建加载', status: 'pass', message: '页面在 640ms 内完成首屏渲染，无空白。', durationMs: 640 },
   { id: 'runtime-errors', label: '运行时错误', status: 'pass', message: '控制台与 pageerror 均无异常。', durationMs: 12 },
@@ -231,6 +328,28 @@ const EXPERIENCE_REPORT: GameplayExperienceReport = {
   reportPath: '.noobi/experience-report.json',
   summary: '三关结构完整，提交前不泄露答案，错误路径有代价且可纠正，重开与最佳记录正常。',
   checks: EXPERIENCE_CHECKS,
+};
+
+
+const ARCADE_REPORT: GameplayExperienceReport = {
+  version: 1,
+  verdict: 'pass',
+  score: 96,
+  checkedAt: iso(-8 * 60 * 1000),
+  durationMs: 8840,
+  reportPath: '.noobi/experience-report.json',
+  summary: '三波敌人与 Boss 完整，移动、射击、受击和重开均可观察，胜负结算正常。',
+  checks: [
+    { id: 'load', label: '正式构建加载', status: 'pass', message: 'Canvas 首屏在 480ms 内完成渲染。', durationMs: 480 },
+    { id: 'runtime-errors', label: '运行时错误', status: 'pass', message: '控制台与 pageerror 均无异常。', durationMs: 12 },
+    { id: 'visible-surface', label: '可见画面', status: 'pass', message: '玩家、敌人、HUD 与关卡标签均可辨认。', durationMs: 320 },
+    { id: 'input-response', label: '输入响应', status: 'pass', message: 'WASD 与鼠标射击都能改变画面。', durationMs: 640 },
+    { id: 'continuous-render', label: '动画连续性', status: 'pass', message: '粒子、敌人与受击闪烁持续渲染。', durationMs: 2400 },
+    { id: 'restart', label: '重新开始', status: 'pass', message: '失败后重开回到第 1 关，分数归零。', durationMs: 500 },
+    { id: 'success-gated', label: '通关判定', status: 'pass', message: '击败 Boss 后才显示胜利结算。', durationMs: 1600 },
+    { id: 'failure-path', label: '失败路径', status: 'pass', message: '生命归零进入失败结算并可重开。', durationMs: 1300 },
+    { id: 'level-progression', label: '关卡推进', status: 'pass', message: '第 1 关 → 第 2 关 → 第 3 关文本随波次变化。', durationMs: 2600 },
+  ],
 };
 
 const ASSETS: GameAssetRecord[] = [
@@ -271,6 +390,23 @@ const ASSETS: GameAssetRecord[] = [
     sha256: '9d0e2f77a1b3…',
     createdAt: iso(-16 * 60 * 1000),
     prompt: 'procedural seed packet card for the greenhouse UI',
+  },
+];
+
+
+const ARCADE_ASSETS: GameAssetRecord[] = [
+  {
+    id: 'asset-neon-grid',
+    name: '霓虹网格背景',
+    kind: 'image',
+    source: 'generated',
+    relativePath: 'assets/neon-grid.png',
+    mimeType: 'image/png',
+    size: 27678,
+    sha256: '7c1d9a4e2b0f…',
+    createdAt: iso(-12 * 60 * 1000),
+    prompt: 'neon grid skyline, synthwave, deep navy and magenta glow, 16:9',
+    provider: 'Codex ImageGen',
   },
 ];
 
@@ -323,6 +459,32 @@ const FILE_TREE: FileNode[] = [
   { name: 'package.json', relativePath: 'package.json', type: 'file', size: 158 },
 ];
 
+
+const ARCADE_CONTENTS: Record<string, string> = {
+  'index.html': '<!doctype html>\n<html lang="zh-CN">\n  <head>\n    <meta charset="utf-8" />\n    <title>霓虹突围</title>\n  </head>\n  <body>\n    <canvas id="game" width="960" height="540"></canvas>\n    <script type="module" src="/src/game.js"></script>\n  </body>\n</html>\n',
+  'src/game.js': "import { spawnWave, updateEnemies } from './enemies.js';\nimport { createState } from './state.js';\n\nconst canvas = document.querySelector('#game');\nconst ctx = canvas.getContext('2d');\nconst state = createState();\n\nfunction frame(now) {\n  updateEnemies(state, now);\n  draw(ctx, state);\n  requestAnimationFrame(frame);\n}\n\nspawnWave(state, 1);\nrequestAnimationFrame(frame);\n",
+  'src/enemies.js': 'export function spawnWave(state, wave) {\n  state.wave = wave;\n  state.pending = wave === 3 ? 0 : 5 + wave * 3;\n}\n\nexport function updateEnemies(state, now) {\n  const dt = Math.min(0.033, (now - state.last) / 1000);\n  state.last = now;\n  state.enemies.forEach((enemy) => {\n    enemy.x += enemy.vx * dt;\n    enemy.y += enemy.vy * dt;\n  });\n}\n',
+  'src/state.js': 'export function createState() {\n  return { wave: 1, hp: 5, score: 0, pending: 8, enemies: [], bullets: [], last: performance.now() };\n}\n',
+  'package.json': '{\n  "name": "neon-breakout",\n  "private": true,\n  "type": "module",\n  "scripts": { "build": "vite build" }\n}\n',
+  '.noobi/playtest.json': '{\n  "levels": { "count": 3 },\n  "journey": [\n    { "action": "load", "assert": ["visible"] },\n    { "action": "move", "inputs": ["KeyD"], "assert": ["screen-change"] },\n    { "action": "fire", "inputs": ["Space"], "assert": ["screen-change"] },\n    { "action": "restart", "inputs": ["KeyR"], "assert": ["text-visible 第 1 关"] }\n  ]\n}\n',
+};
+
+const ARCADE_FILES: FileNode[] = [
+  { name: 'src', relativePath: 'src', type: 'directory', children: [
+    { name: 'game.js', relativePath: 'src/game.js', type: 'file', size: 468 },
+    { name: 'enemies.js', relativePath: 'src/enemies.js', type: 'file', size: 402 },
+    { name: 'state.js', relativePath: 'src/state.js', type: 'file', size: 180 },
+  ] },
+  { name: 'assets', relativePath: 'assets', type: 'directory', children: [
+    { name: 'neon-grid.png', relativePath: 'assets/neon-grid.png', type: 'file', size: 27678 },
+  ] },
+  { name: '.noobi', relativePath: '.noobi', type: 'directory', children: [
+    { name: 'playtest.json', relativePath: '.noobi/playtest.json', type: 'file', size: 420 },
+  ] },
+  { name: 'index.html', relativePath: 'index.html', type: 'file', size: 212 },
+  { name: 'package.json', relativePath: 'package.json', type: 'file', size: 126 },
+];
+
 const ENVIRONMENT: EnvironmentStatusSnapshot = {
   state: 'ready',
   tools: [
@@ -356,7 +518,7 @@ const EXTENSIONS: ExtensionSettingsSnapshot = {
     { id: 'pixel-art', name: 'Pixel Art Direction', description: '约束生成素材的配色、比例与像素密度。', source: 'user', path: '~/Noobi/skills/pixel-art', enabled: true },
   ],
   mcpServers: [
-    { id: 'workspace-files', name: 'workspace-files', transport: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-filesystem', DEMO_ROOT], url: null, enabled: true, bearerTokenEnvVar: null, status: 'connected', statusMessage: '只读访问演示工作区' },
+    { id: 'workspace-files', transport: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-filesystem', DEMO_ROOT], url: null, enabled: true, bearerTokenEnvVar: null, status: 'connected', statusMessage: '只读访问演示工作区' },
   ],
   promptTemplates: [
     { id: 'planner', name: 'Planner', description: '只读拆解任务与验收标准。', content: '你是只读 Planner。为知识闯关游戏拆解关卡、变量、错误代价与验收标准。', enabled: true, customized: false },
@@ -370,7 +532,7 @@ const listeners = {
   agent: new Set<(event: AgentEvent) => void>(),
   project: new Set<(project: ProjectRecord) => void>(),
   runtime: new Set<(status: RuntimeStatus) => void>(),
-  approval: new Set<(approval: unknown) => void>(),
+  approval: new Set<(approval: ApprovalRequest) => void>(),
   approvalClosed: new Set<(token: string) => void>(),
   assets: new Set<(payload: { projectId: string; assets: GameAssetRecord[] }) => void>(),
   plans: new Set<(payload: { projectId: string; assetPlans: AssetPlanRecord[] }) => void>(),
@@ -418,7 +580,7 @@ const state: DemoState = {
   iconUrl: null,
 };
 
-function scriptEvents(projectId: string, prompt: string | null, startAt: number): AgentEvent[] {
+function scriptEvents(projectId: string, prompt: string | null, startAt: number, script: ScriptStep[] = SCRIPT): AgentEvent[] {
   const list: AgentEvent[] = [];
   if (prompt) {
     list.push({
@@ -432,7 +594,7 @@ function scriptEvents(projectId: string, prompt: string | null, startAt: number)
     });
   }
   const offset = prompt ? 1 : 0;
-  SCRIPT.forEach((step, index) => {
+  script.forEach((step, index) => {
     list.push({
       id: `${projectId}-step-${index}`,
       projectId,
@@ -470,29 +632,35 @@ function replaceProject(project: ProjectRecord) {
   emitProject(project);
 }
 
-function previewBase(): string {
-  return new URL('game/', document.baseURI).href;
+function previewBase(workshop: boolean): string {
+  return new URL(workshop ? 'game/' : 'game-arcade/', document.baseURI).href;
 }
 
-function fileTree(): FileNode[] {
-  return FILE_TREE.map((node) => ({ ...node }));
+function fileTree(workshop: boolean): FileNode[] {
+  return (workshop ? FILE_TREE : ARCADE_FILES).map((node) => ({ ...node }));
 }
 
 function inspect(projectId: string): ProjectInspectorPayload {
   const project = projectById(projectId);
   const ready = project.status === 'completed';
+  const workshop = Boolean(readWorkshopProposal(project.idea));
   return {
-    previewUrl: ready ? previewBase() : '',
-    workshopPreview: ready
+    previewUrl: ready ? previewBase(workshop) : '',
+    workshopPreview: workshop && ready
       ? { current: '2026.11.13-1', previous: null, previousPreviewUrl: '' }
       : undefined,
-    files: ready ? fileTree() : [],
-    assets: ready ? ASSETS : [],
+    files: ready ? fileTree(workshop) : [],
+    assets: ready ? (workshop ? ASSETS : ARCADE_ASSETS) : [],
     assetPlans: [],
     imageGenerationGate: ready
-      ? { state: 'trusted-referenced', relativePaths: ['assets/greenhouse-bg.png', 'assets/moonflower.png'] }
+      ? {
+          state: 'trusted-referenced',
+          relativePaths: workshop
+            ? ['assets/greenhouse-bg.png', 'assets/moonflower.png']
+            : ['assets/neon-grid.png'],
+        }
       : { state: 'missing', relativePaths: [] },
-    experienceReport: ready ? EXPERIENCE_REPORT : null,
+    experienceReport: ready ? (workshop ? EXPERIENCE_REPORT : ARCADE_REPORT) : null,
   };
 }
 
@@ -541,6 +709,8 @@ function clearTimers(projectId: string) {
 
 function beginRun(project: ProjectRecord, prompt: string): ProjectRecord {
   clearTimers(project.id);
+  const workshop = Boolean(readWorkshopProposal(project.idea));
+  const script = workshop ? SCRIPT : FREE_SCRIPT;
   state.events[project.id] = [];
   const running: ProjectRecord = {
     ...project,
@@ -563,7 +733,7 @@ function beginRun(project: ProjectRecord, prompt: string): ProjectRecord {
     timestamp: new Date(startAt).toISOString(),
   });
   const timers: number[] = [];
-  SCRIPT.forEach((step, index) => {
+  script.forEach((step, index) => {
     const timer = window.setTimeout(() => {
       const current = projectById(project.id);
       if (current.status !== 'running') return;
@@ -577,7 +747,7 @@ function beginRun(project: ProjectRecord, prompt: string): ProjectRecord {
         timestamp: new Date().toISOString(),
         method: step.method,
       });
-      const last = index === SCRIPT.length - 1;
+      const last = index === script.length - 1;
       const updated: ProjectRecord = {
         ...current,
         stage: step.stage,
@@ -589,7 +759,7 @@ function beginRun(project: ProjectRecord, prompt: string): ProjectRecord {
       if (last) {
         state.timers.delete(project.id);
         for (const listener of listeners.assets) {
-          listener({ projectId: project.id, assets: ASSETS });
+          listener({ projectId: project.id, assets: workshop ? ASSETS : ARCADE_ASSETS });
         }
       }
     }, 900 + index * 720);
@@ -762,17 +932,19 @@ const api: NoobiApi = {
     return inspect(projectId);
   },
 
-  async evaluateProjectExperience() {
+  async evaluateProjectExperience(projectId) {
     await new Promise((resolve) => setTimeout(resolve, 1400));
-    return { ...EXPERIENCE_REPORT, checkedAt: new Date().toISOString() };
+    const report = readWorkshopProposal(projectById(projectId).idea) ? EXPERIENCE_REPORT : ARCADE_REPORT;
+    return { ...report, checkedAt: new Date().toISOString() };
   },
 
   async cancelProjectExperience() {
     /* no-op */
   },
 
-  async readProjectFile(_projectId, relativePath) {
-    const content = FILE_CONTENTS[relativePath];
+  async readProjectFile(projectId, relativePath) {
+    const workshop = Boolean(readWorkshopProposal(projectById(projectId).idea));
+    const content = (workshop ? FILE_CONTENTS : ARCADE_CONTENTS)[relativePath];
     if (content === undefined) throw new Error(`无法读取 ${relativePath}`);
     return { relativePath, content, truncated: false, binary: false };
   },

@@ -321,7 +321,7 @@ export function App() {
         idea: input.idea,
         projectDirectory,
         model: input.model,
-        workshopProposal: input.proposal,
+        ...(input.proposal ? { workshopProposal: input.proposal } : {}),
       });
       if (project.status === 'failed') {
         throw new Error(project.lastError ?? '项目创建失败');
@@ -333,7 +333,7 @@ export function App() {
       try {
         await runProjectFor(
           project,
-          input.proposal.plan,
+          input.proposal?.plan ?? input.idea,
           input.model,
           input.effort ?? settings.defaultEffort,
         );

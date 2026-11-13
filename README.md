@@ -25,7 +25,7 @@
   <a href="README.zh-CN.md"><strong>简体中文</strong></a>
 </p>
 
-![游戏工坊 production workbench showing the agent pipeline, playable preview, assets and project files](docs/images/noobi-workbench.png)
+![游戏工坊 production workbench showing the pipeline, event stream and playable preview](docs/images/game-studio-workbench.jpg)
 
 游戏工坊 gives Codex a bounded game-production loop instead of asking one agent to improvise everything in a single pass. A read-only Planner scopes the work, an Implementer builds inside an isolated project directory, an independent Reviewer checks the result, and the host builds and plays the production output before completion. Failed review, build or playtest checks return to the same Implementer for up to three repair rounds.
 
@@ -43,6 +43,11 @@
 | **Real media pipeline** | Route images, music, speech, sound effects and 3D through configured providers, Codex ImageGen, imported assets or procedural fallbacks. Failed assets remain visible as retryable placeholders. |
 | **A workspace you own** | Every game is a normal local project. Inspect the files, continue with Codex, commit it to Git, or take it outside 游戏工坊. |
 | **Built to extend** | Add media providers, Codex Skills, MCP servers, agent prompts, project templates, Godot export targets, or an entirely different workbench UI. |
+
+## Two creation modes
+
+- **Knowledge adventure** — grade- and topic-scoped proposal with 3–8 configurable knowledge levels, and host-side checks that the knowledge actually drives play.
+- **Free creation** — no knowledge topic or grade. The same Planner → Implementer → Reviewer → build → automated playtest loop works for action, puzzle, shooter, management and other genres.
 
 ## Quick start
 
@@ -90,7 +95,7 @@ flowchart LR
 
 The workbench visualizes `Brief → Scaffold → GDD → Assets → World → Code → Verify → Complete`. Those stages explain progress; the Reviewer and host proof gate decide whether a run is actually complete.
 
-![游戏工坊 mascot orchestrating code, animation, 3D, audio and playable worlds](docs/images/noobi-game-agent-poster.png)
+![游戏工坊 workshop home for knowledge adventures and free creation](docs/images/game-studio-home.jpg)
 
 ## Fork and customize
 

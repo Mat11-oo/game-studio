@@ -155,6 +155,7 @@
     white-space: nowrap;
   }
   .level-chip b { font-size: 21px; letter-spacing: 0; }
+  .level-chip em, .stars em { font-style: normal; font-size: 11px; }
   .level-chip span { color: rgba(239, 188, 99, 0.62); font-size: 11px; }
   .brand {
     display: flex;
@@ -487,14 +488,14 @@
   <div class="frame">
     <div class="greenhouse-glass"></div>
     <header class="hud">
-      <div class="level-chip">第 <b id="levelNo">1</b> 关 <span>/ 3</span></div>
+      <div class="level-chip">第 <b id="levelNo">1</b> 关 <span>/ <em id="levelTotal">3</em></span></div>
       <div class="brand">
         <strong>月光温室</strong>
         <small>MOONLIT GREENHOUSE · AREA LAB</small>
       </div>
       <div class="meters">
         <div class="energy" id="energy" aria-label="剩余能量"></div>
-        <div class="stars">★ <b id="starCount">0</b><span>/ 9</span></div>
+        <div class="stars">★ <b id="starCount">0</b><span>/ <em id="starMax">9</em></span></div>
         <button class="save-btn" id="saveBtn" type="button">保存进度</button>
       </div>
     </header>
@@ -541,7 +542,7 @@
 (() => {
   "use strict";
 
-  const LEVELS = [
+  const ALL_LEVELS = [
     {
       x: 4,
       y: 3,
@@ -578,8 +579,71 @@
       hint: "整块 5 × 4 = 20 平方米，工具区 2 × 2 = 4 平方米，20 − 4 = 16 平方米。",
       wrongHint: "先算整块苗床的面积，再减掉不需要铺土的工具区面积。",
       cut: true
+    },
+    {
+      x: 6,
+      y: 4,
+      kicker: "BED 04 / SOIL",
+      caption: "第四块苗床长 6 米、宽 4 米。面积变大以后，仍然先把长和宽相乘。",
+      question: "这块 6 米 × 4 米的苗床，需要多少平方米营养土？",
+      unit: "平方米",
+      answer: 24,
+      options: [20, 24, 28],
+      hint: "面积 = 长 × 宽 = 6 × 4 = 24 平方米。",
+      wrongHint: "把 6 行、每行 4 平方米的方格铺满，一共是 24 格。用乘法，不是加法。"
+    },
+    {
+      x: 7,
+      y: 6,
+      kicker: "BED 05 / LENGTH",
+      caption: "第五块苗床面积固定为 42 平方米，宽 6 米。需要反推它的长。",
+      question: "面积 42 平方米、宽 6 米，苗床的长应该是多少米？",
+      unit: "米",
+      answer: 7,
+      options: [6, 7, 8],
+      hint: "长 = 面积 ÷ 宽 = 42 ÷ 6 = 7 米。",
+      wrongHint: "已知面积和宽，求长用除法：42 ÷ 6。可以想 6 × 几 = 42。"
+    },
+    {
+      x: 7,
+      y: 5,
+      kicker: "BED 06 / TOOL CORNER",
+      caption: "第六块苗床是 7 米 × 5 米，右下角有 2 米 × 2 米的工具区，不铺营养土。",
+      question: "去掉工具区后，这块苗床还需要多少平方米营养土？",
+      unit: "平方米",
+      answer: 31,
+      options: [29, 31, 35],
+      hint: "整块 7 × 5 = 35 平方米，工具区 2 × 2 = 4 平方米，35 − 4 = 31 平方米。",
+      wrongHint: "先算整块 7 × 5，再减掉工具区的 2 × 2。",
+      cut: true
+    },
+    {
+      x: 8,
+      y: 6,
+      kicker: "BED 07 / SOIL",
+      caption: "第七块苗床长 8 米、宽 6 米。数字更大，方法不变：长 × 宽。",
+      question: "这块 8 米 × 6 米的苗床，需要多少平方米营养土？",
+      unit: "平方米",
+      answer: 48,
+      options: [42, 48, 54],
+      hint: "面积 = 长 × 宽 = 8 × 6 = 48 平方米。",
+      wrongHint: "把 8 行、每行 6 平方米铺满，一共 48 格。"
+    },
+    {
+      x: 9,
+      y: 5,
+      kicker: "BED 08 / LENGTH",
+      caption: "最后一关：面积 45 平方米，宽 5 米，求苗床的长。",
+      question: "面积 45 平方米、宽 5 米，苗床的长应该是多少米？",
+      unit: "米",
+      answer: 9,
+      options: [8, 9, 10],
+      hint: "长 = 面积 ÷ 宽 = 45 ÷ 5 = 9 米。",
+      wrongHint: "面积 ÷ 宽 = 长。想想 5 × 几 = 45。"
     }
   ];
+
+  let LEVELS = ALL_LEVELS.slice(0, 3);
 
   const BEST_KEY = "moonlit-greenhouse:best";
   const SAVE_KEY = "moonlit-greenhouse:save";
@@ -601,6 +665,8 @@
   const levelNo = $("levelNo");
   const energyEl = $("energy");
   const starCount = $("starCount");
+  const levelTotal = $("levelTotal");
+  const starMax = $("starMax");
   const bed = $("bed");
   const crop = $("crop");
   const cut = $("cut");
@@ -632,7 +698,7 @@
         "苗床长": level.x + " 米",
         "苗床宽": level.y + " 米",
         "剩余能量": state.energy + " 片叶",
-        "累计星级": state.stars + " / 9"
+        "累计星级": state.stars + " / " + (LEVELS.length * 3)
       },
       recentActions: state.levelStars.length ? ["已完成第 " + state.levelStars.length + " 关"] : ["准备铺设第一块苗床"],
       result: result || "等待玩家判断苗床面积"
@@ -686,6 +752,8 @@
     crop.innerHTML = "";
     sproutsFor(level).forEach((sprout) => crop.appendChild(sprout));
     levelNo.textContent = String(state.level + 1);
+    levelTotal.textContent = String(LEVELS.length);
+    starMax.textContent = String(LEVELS.length * 3);
     starCount.textContent = String(state.stars);
     dimX.textContent = state.level === 1 ? "? 米" : level.x + " 米";
     dimY.textContent = level.y + " 米";
@@ -808,7 +876,7 @@
       ? "★".repeat(Math.max(1, Math.round(total / 3))) + "☆".repeat(3 - Math.max(1, Math.round(total / 3)))
       : "☆☆☆";
     $("modalText").innerHTML = won
-      ? "本季共获得 <b>" + total + " / 9</b> 颗星，最佳记录 <b>" + best + "</b> 颗星。<br>每一块苗床的面积，都可以用长 × 宽来核对。"
+      ? "本季共获得 <b>" + total + " / " + (LEVELS.length * 3) + "</b> 颗星，最佳记录 <b>" + best + "</b> 颗星。<br>每一块苗床的面积，都可以用长 × 宽来核对。"
       : "能量用完了，但记录还在。重新开始，先想清楚长、宽和面积的关系。";
     $("modalButton").textContent = won ? "再种一季" : "重新开始";
     modal.hidden = false;
@@ -883,6 +951,20 @@
     const message = event.data;
     if (!message || typeof message !== "object") return;
     if (message.type === "workshop:load") loadProgress(message.data);
+    if (message.type === "workshop:config") {
+      const requested = Number(message.levelCount);
+      const count = Math.max(1, Math.min(ALL_LEVELS.length, Number.isFinite(requested) ? Math.round(requested) : 3));
+      if (count === LEVELS.length) return;
+      LEVELS = ALL_LEVELS.slice(0, count);
+      state.level = 0;
+      state.energy = 3;
+      state.stars = 0;
+      state.levelStars = [];
+      state.finished = false;
+      modal.hidden = true;
+      renderLevel();
+      showToast("演示关卡数：" + count);
+    }
   });
 
   renderLevel();

@@ -113,7 +113,7 @@ describe('generateProceduralProjectIcon', () => {
   it('uses the confirmed proposal to draw distinct, stable game icons', async () => {
     const project = await fakeProject();
     const proposal = (plan: string) => `知识冒险工坊 V1\n${JSON.stringify({
-      grade: 5, audience: 'self', topic: 'open', plan,
+      grade: 5, audience: 'self', topic: 'open', levelCount: 3, plan,
     })}`;
     const rescue = { ...project, idea: proposal('驾驶救援车') };
     const garden = { ...project, idea: proposal('照顾月球温室') };
