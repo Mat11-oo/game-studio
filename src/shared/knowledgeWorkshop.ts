@@ -15,7 +15,7 @@ export const KNOWLEDGE_RULES = {
 
 export type KnowledgeTopic = keyof typeof KNOWLEDGE_RULES | 'open';
 
-export const WORKSHOP_LEVEL_MIN = 3;
+export const WORKSHOP_LEVEL_MIN = 1;
 export const WORKSHOP_LEVEL_MAX = 5;
 export const DEFAULT_WORKSHOP_LEVEL_COUNT = 3;
 
@@ -76,7 +76,7 @@ export function serializeWorkshopProposal(proposal: WorkshopProposal): string {
 export function wisdomLevelContract(levelCount: number = DEFAULT_WORKSHOP_LEVEL_COUNT): string {
   return `<wisdom_level_contract>
 本项目是「智慧闯关」知识游戏。除通用制作契约外，必须满足：
-1. 关卡结构：${levelCount} 个难度递进的知识关卡。每关包含一个必须由玩家运用知识做出的决策，以及可观察的过关或失败判定。
+1. 关卡结构：${levelCount} 个知识关卡，难度递进。每关包含一个必须由玩家运用知识做出的决策，以及可观察的过关或失败判定。
 2. 答案延迟：提交前不得显示计算结果、正确答案或是否达标；只显示已知条件与玩家输入。
 3. 错误代价：答错必须产生代价（生命、时间、星级或进度）并且可以纠正；错误反馈要讲清思路，不能只显示叉号。
 4. 关卡可见性：HUD 必须显示「第 N 关」，切换关卡后该文本随之变化，标题、分数或进度条不能代替关卡编号。

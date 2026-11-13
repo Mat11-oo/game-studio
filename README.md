@@ -46,7 +46,7 @@
 
 ## Two creation modes
 
-- **Knowledge adventure** — grade- and topic-scoped proposal with 3–5 configurable knowledge levels, and host-side checks that the knowledge actually drives play.
+- **Knowledge adventure** — grade- and topic-scoped proposal with 1–5 configurable knowledge levels, and host-side checks that the knowledge actually drives play.
 - **Free creation** — no knowledge topic or grade. The same Planner → Implementer → Reviewer → build → automated playtest loop works for action, puzzle, shooter, management and other genres.
 
 ## Quick start

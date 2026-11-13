@@ -835,8 +835,9 @@
     localStorage.setItem(BEST_KEY, String(best));
     $("modalKicker").textContent = won ? "HARVEST / SAVED" : "ENERGY EMPTY";
     $("modalTitle").textContent = won ? "温室收获" : "幼苗枯萎了";
+    const rating = Math.max(1, Math.min(3, Math.round(total / LEVELS.length)));
     $("modalStars").textContent = won
-      ? "★".repeat(Math.max(1, Math.round(total / 3))) + "☆".repeat(3 - Math.max(1, Math.round(total / 3)))
+      ? "★".repeat(rating) + "☆".repeat(3 - rating)
       : "☆☆☆";
     $("modalText").innerHTML = won
       ? "本季共获得 <b>" + total + " / " + (LEVELS.length * 3) + "</b> 颗星，最佳记录 <b>" + best + "</b> 颗星。<br>每一块苗床的面积，都可以用长 × 宽来核对。"

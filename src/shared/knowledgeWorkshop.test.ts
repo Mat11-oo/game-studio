@@ -20,7 +20,7 @@ describe('workshop instructions', () => {
 
     expect(instructions).toContain('智慧闯关');
     expect(instructions).toContain('<wisdom_level_contract>');
-    expect(instructions).toContain('5 个难度递进的知识关卡');
+    expect(instructions).toContain('5 个知识关卡，难度递进');
     expect(instructions).toContain('"levels": { "count": 5 }');
     expect(instructions).toContain('提交前不得显示计算结果');
     expect(instructions).toContain('playability');

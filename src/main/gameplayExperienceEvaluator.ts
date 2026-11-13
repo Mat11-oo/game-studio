@@ -409,7 +409,7 @@ export function assertWisdomPlaytestManifest(
 ): void {
   const findings: string[] = [];
   if (!manifest.actions.mistake) findings.push('actions.mistake 缺失');
-  if (!manifest.levels || manifest.levels.count < 3) findings.push('levels.count 必须 ≥ 3');
+  if (!manifest.levels || manifest.levels.count < 1) findings.push('levels.count 必须 ≥ 1');
   if (manifest.levels && expectedLevelCount !== undefined
     && manifest.levels.count !== expectedLevelCount) {
     findings.push(`levels.count 必须等于 ${expectedLevelCount}`);
@@ -484,7 +484,7 @@ export function parseGameplayPlaytestManifest(value: unknown): GameplayPlaytestM
     const levelsRecord = requireRecord(root.levels, 'playtest.levels');
     requireOnlyKeys(levelsRecord, ['count'], 'playtest.levels');
     levels = {
-      count: requireIntegerInRange(levelsRecord.count, 'playtest.levels.count', 2, 12),
+      count: requireIntegerInRange(levelsRecord.count, 'playtest.levels.count', 1, 12),
     };
   }
 

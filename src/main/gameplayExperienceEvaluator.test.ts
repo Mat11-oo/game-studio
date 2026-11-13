@@ -795,7 +795,7 @@ describe('GameplayExperienceEvaluator', () => {
 });
 
 describe('wisdom level profile', () => {
-  it('requires mistake, three levels, and a terminal assertion', () => {
+  it('requires a mistake path and a valid level count', () => {
     const manifest = parseGameplayPlaytestManifest(wisdomManifest());
     expect(manifest.levels).toEqual({ count: 3 });
     expect(manifest.actions.mistake?.inputs).toHaveLength(1);
@@ -806,8 +806,11 @@ describe('wisdom level profile', () => {
     expect(() => assertWisdomPlaytestManifest(parseGameplayPlaytestManifest(withoutMistake)))
       .toThrow('actions.mistake');
 
-    const onlyTwoLevels = { ...wisdomManifest(), levels: { count: 2 } };
-    expect(() => assertWisdomPlaytestManifest(parseGameplayPlaytestManifest(onlyTwoLevels)))
+    const oneLevel = parseGameplayPlaytestManifest({ ...wisdomManifest(), levels: { count: 1 } });
+    expect(() => assertWisdomPlaytestManifest(oneLevel, 1)).not.toThrow();
+
+    const noLevels = { ...wisdomManifest(), levels: { count: 0 } };
+    expect(() => assertWisdomPlaytestManifest(parseGameplayPlaytestManifest(noLevels)))
       .toThrow('levels.count');
   });
 
