@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/images/noobi-app-icon.png" width="112" alt="游戏工坊 app icon">
-</p>
-
 <h1 align="center">游戏工坊</h1>
 
 <p align="center">
@@ -10,19 +6,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Mat11-oo/game-studio/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Mat11-oo/game-studio/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://github.com/Mat11-oo/game-studio/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Mat11-oo/game-studio?style=flat"></a>
-  <a href="https://github.com/Mat11-oo/game-studio/forks"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Mat11-oo/game-studio?style=flat"></a>
-  <img alt="Platform: macOS" src="https://img.shields.io/badge/platform-macOS-11120f">
-  <img alt="Developer preview" src="https://img.shields.io/badge/status-developer%20preview-E9A93A">
-</p>
-
-<p align="center">
   <a href="https://mat11-oo.github.io/game-studio/"><strong>Live demo</strong></a> ·
   <a href="#quick-start"><strong>Run from source</strong></a> ·
-  <a href="#fork-and-customize"><strong>Fork &amp; customize</strong></a> ·
-  <a href="docs/ARCHITECTURE.md"><strong>Architecture</strong></a> ·
-  <a href="README.zh-CN.md"><strong>简体中文</strong></a>
 </p>
 
 ![游戏工坊 production workbench showing the pipeline, event stream and playable preview](docs/images/game-studio-workbench.jpg)
